@@ -15,7 +15,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 */
 
 
--- IMPORTAR TABLA CONSORCIOS DE XLS
+-- IMPORTAR TABLA CONSORCIOS DE CSV. Originalmente estos datos se encuentran en una tabla excel, se pide que exporte la hoja como csv para poder realizar la importacion
 
 USE Com5600G03;
 GO

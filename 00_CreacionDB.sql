@@ -10,7 +10,7 @@ Villan Matias Nicolas         - MatiasKV0       - 46117338
 Lucas Tadeo Messina           - TotoMessina     - 44552900
 Oliveti Lautaro Nahuel        - lautioliveti    - 43863497
 Mamani Estrada Lucas Gabriel  - lucasGME        - 43624305
-Sotelo Matias Ivan            - MatiSotelo2004  - 
+Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
 */
 
@@ -35,31 +35,31 @@ IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'administracion')
 BEGIN
 	EXEC ('CREATE SCHEMA administracion')
 END;
-go
+GO
 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'unidad_funcional')
 BEGIN
 	EXEC ('CREATE SCHEMA unidad_funcional')
 END;
-go
+GO
 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'persona')
 BEGIN
 	EXEC ('CREATE SCHEMA persona')
 END;
-go
+GO
 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'expensa')
 BEGIN
 	EXEC ('CREATE SCHEMA expensa')
 END;
-go
+GO
 
 IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = 'financiero')
 BEGIN
 	EXEC ('CREATE SCHEMA financiero')
 END;
-go
+GO
 
 ------------------------------------------------------------
 -- TABLAS BASE

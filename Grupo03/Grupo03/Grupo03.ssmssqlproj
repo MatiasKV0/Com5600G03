@@ -26,21 +26,58 @@
           <FullPath>00_CreacionDB.sql</FullPath>
         </FileNode>
         <FileNode Name="01_SP_Importar_Consorcios.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-OEUG4KG:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-OEUG4KG</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>01_SP_Importar_Consorcios.sql</FullPath>
         </FileNode>
         <FileNode Name="02_SP_Importar_UF.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-OEUG4KG:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-OEUG4KG</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>02_SP_Importar_UF.sql</FullPath>
         </FileNode>
       </Items>
     </LogicalFolder>
     <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
-      <Items />
+      <Items>
+        <FileNode Name="datos varios.xlsx">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>datos varios.xlsx</FullPath>
+        </FileNode>
+        <FileNode Name="Inquilino-propietarios-datos.csv">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Inquilino-propietarios-datos.csv</FullPath>
+        </FileNode>
+        <FileNode Name="Inquilino-propietarios-UF.csv">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Inquilino-propietarios-UF.csv</FullPath>
+        </FileNode>
+        <FileNode Name="pagos_consorcios.csv">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>pagos_consorcios.csv</FullPath>
+        </FileNode>
+        <FileNode Name="Servicios.Servicios.json">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>Servicios.Servicios.json</FullPath>
+        </FileNode>
+        <FileNode Name="UF por consorcio.txt">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>UF por consorcio.txt</FullPath>
+        </FileNode>
+      </Items>
     </LogicalFolder>
   </Items>
 </SqlWorkbenchSqlProject>

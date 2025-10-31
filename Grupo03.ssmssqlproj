@@ -39,45 +39,5 @@
         </FileNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Miscellaneous" Type="3" Sorted="true">
-      <Items>
-        <FileNode Name="datos varios.xlsx">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>datos varios.xlsx</FullPath>
-        </FileNode>
-        <FileNode Name="Inquilino-propietarios-datos.csv">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Inquilino-propietarios-datos.csv</FullPath>
-        </FileNode>
-        <FileNode Name="Inquilino-propietarios-UF.csv">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Inquilino-propietarios-UF.csv</FullPath>
-        </FileNode>
-        <FileNode Name="pagos_consorcios.csv">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>pagos_consorcios.csv</FullPath>
-        </FileNode>
-        <FileNode Name="Servicios.Servicios.json">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>Servicios.Servicios.json</FullPath>
-        </FileNode>
-        <FileNode Name="UF por consorcio.txt">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
-          <AssociatedConnUserName />
-          <FullPath>UF por consorcio.txt</FullPath>
-        </FileNode>
-      </Items>
-    </LogicalFolder>
   </Items>
 </SqlWorkbenchSqlProject>

@@ -20,7 +20,7 @@ USE Com5600G03;
 GO
 
 CREATE OR ALTER PROCEDURE administracion.ImportarUF
-  @RutaArchivo VARCHAR(400)
+  @RutaArchivo NVARCHAR(400)
 AS
 BEGIN
   SET NOCOUNT ON;
@@ -38,7 +38,7 @@ BEGIN
     M2Cochera       VARCHAR(50)
   );
   --------------------bulk insert en la tabla temporal
-  DECLARE @sql_bulk VARCHAR(MAX) =
+  DECLARE @sql_bulk NVARCHAR(MAX) =
     N'BULK INSERT #uf_archivo
       FROM N''' + @RutaArchivo + N'''
       WITH (
@@ -124,7 +124,7 @@ BEGIN
     M2Cochera       VARCHAR(50)
   );
   --------------------bulk insert en la tabla temporal
-  DECLARE @sql_bulk VARCHAR(MAX) =
+  DECLARE @sql_bulk NVARCHAR(MAX) =
     N'BULK INSERT #uf_archivo
       FROM N''' + @RutaArchivo + N'''
       WITH (
@@ -211,7 +211,7 @@ BEGIN
     M2Cochera       VARCHAR(50)
   );
   --------------------bulk insert en la tabla temporal
-  DECLARE @sql_bulk VARCHAR(MAX) =
+  DECLARE @sql_bulk NVARCHAR(MAX) =
     N'BULK INSERT #uf_archivo
       FROM N''' + @RutaArchivo + N'''
       WITH (

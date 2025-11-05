@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Pr·ctico Integrador
-ComisiÛn: 5600
+Trabajo Pr√°ctico Integrador
+Comisi√≥n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -22,7 +22,7 @@ GO
 
 
 CREATE OR ALTER PROCEDURE administracion.ImportarConsorcios
-    @RutaArchivo NVARCHAR(300)
+    @RutaArchivo VARCHAR(300)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -42,7 +42,7 @@ BEGIN
 
 
 	----bulk insert en la tabla temporal----
-    DECLARE @SQL NVARCHAR(MAX) = '
+    DECLARE @SQL VARCHAR(MAX) = '
         BULK INSERT #Consorcios
         FROM ''' + @RutaArchivo + '''
         WITH (

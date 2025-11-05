@@ -64,6 +64,10 @@ BEGIN
     END
 
     DECLARE @admin_id INT = (SELECT TOP 1 administracion_id FROM administracion.administracion WHERE nombre = 'Administración General');
+    -- Asociar a todos los consorcios que no tengan administracion_id
+	UPDATE administracion.consorcio
+	SET administracion_id = @admin_id
+	WHERE administracion_id IS NULL;
 
     ------------------------------------------------------------
     -- Insertar consorcios que aún no existan

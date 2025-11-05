@@ -15,11 +15,15 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 */
 
 
--- IMPORTAR TABLA CONSORCIOS DE CSV. Originalmente estos datos se encuentran en una tabla excel, se pide que exporte la hoja como csv para poder realizar la importacion
 
 USE Com5600G03;
 GO
 
+
+
+
+
+-- IMPORTAR TABLA CONSORCIOS DE CSV. Originalmente estos datos se encuentran en una tabla excel, se pide que exporte la hoja como csv para poder realizar la importacion
 
 CREATE OR ALTER PROCEDURE administracion.ImportarConsorcios
     @RutaArchivo NVARCHAR(300)
@@ -55,23 +59,69 @@ BEGIN
     EXEC (@SQL);
 
 
+	 -- 2) Insertar consorcios nuevos y capturar IDs
+    DECLARE @Nuevos TABLE (consorcio_id INT PRIMARY KEY, nombre NVARCHAR(200));
 
-	---insertar consorcios
-	INSERT INTO administracion.consorcio(nombre, domicilio,superficie_total_m2,fecha_alta)
-	SELECT 
-		LTRIM(RTRIM(c.nombreConsorcio)),
+    INSERT INTO administracion.consorcio (nombre, domicilio, superficie_total_m2, fecha_alta)
+    OUTPUT inserted.consorcio_id, inserted.nombre INTO @Nuevos(consorcio_id, nombre)
+    SELECT
+        LTRIM(RTRIM(c.nombreConsorcio)),
         LTRIM(RTRIM(c.domicilio)),
-		m2total,
-		GETDATE() AS fecha_alta
-	FROM #Consorcios c
-	WHERE NOT EXISTS(
-		SELECT 1 FROM administracion.consorcio a where a.nombre=c.nombreConsorcio
-	);
+        c.m2total,
+        GETDATE()
+    FROM #Consorcios c
+    WHERE NOT EXISTS (
+        SELECT 1 FROM administracion.consorcio a WHERE a.nombre = c.nombreConsorcio
+    );
 
+    -- Si no hubo nuevos, terminar
+    IF NOT EXISTS (SELECT 1 FROM @Nuevos)
+    BEGIN
+        DROP TABLE #Consorcios;
+        RETURN;
+    END;
+
+    -- Generar cbu principal para los consoricos
+    DECLARE @CBUs TABLE (consorcio_id INT PRIMARY KEY, cbu VARCHAR(22));
+
+    INSERT INTO @CBUs (consorcio_id, cbu)
+    SELECT n.consorcio_id,
+           (
+             SELECT '' + CHAR(48 + (CONVERT(INT, SUBSTRING(r.bytes, d.i, 1)) % 10))
+             FROM (VALUES
+                  (1),(2),(3),(4),(5),(6),(7),(8),(9),(10),
+                  (11),(12),(13),(14),(15),(16),(17),(18),(19),(20),(21),(22)
+             ) AS d(i)
+             FOR XML PATH(''), TYPE
+           ).value('.', 'varchar(22)') AS cbu
+    FROM @Nuevos n
+    CROSS APPLY (SELECT CRYPT_GEN_RANDOM(22) AS bytes) AS r;
+
+    --  Crear cuentas bancarias 
+    DECLARE @InsCtas TABLE (cuenta_id INT PRIMARY KEY, cbu VARCHAR(22));
+
+    INSERT INTO administracion.cuenta_bancaria (banco, cbu_cvu)
+    OUTPUT inserted.cuenta_id, inserted.cbu_cvu INTO @InsCtas(cuenta_id, cbu)
+    SELECT 'Desconocido', c.cbu
+    FROM @CBUs c
+    WHERE NOT EXISTS (
+        SELECT 1 FROM administracion.cuenta_bancaria cb WHERE cb.cbu_cvu = c.cbu
+    );
+
+    --  Vincular en la tabla intermedia como principal
+    INSERT INTO administracion.consorcio_cuenta_bancaria (consorcio_id, cuenta_id, es_principal)
+    SELECT cbu.consorcio_id, ins.cuenta_id, 1
+    FROM @CBUs cbu
+    JOIN @InsCtas ins
+      ON ins.cbu = cbu.cbu
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM administracion.consorcio_cuenta_bancaria l
+        WHERE l.consorcio_id = cbu.consorcio_id AND l.es_principal = 1
+    );
 
 
     DROP TABLE #Consorcios;
-
 END;
 GO
 
@@ -81,6 +131,10 @@ GO
 
 select consorcio_id,nombre,domicilio,superficie_total_m2,fecha_alta from administracion.consorcio
 GO
+select * from administracion.cuenta_bancaria
+select * from administracion.consorcio_cuenta_bancaria
 
 
---delete from administracion.consorcio
+/*delete from administracion.cuenta_bancaria
+delete from administracion.consorcio_cuenta_bancaria
+delete from administracion.consorcio*/

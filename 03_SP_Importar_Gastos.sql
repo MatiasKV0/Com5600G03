@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Pr·ctico Integrador
-ComisiÛn: 5600
+Trabajo Pr√°ctico Integrador
+Comisi√≥n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -169,7 +169,16 @@ BEGIN
       --  p.periodo_id,
         sg.tipo_id, 
         sg.sub_id,
-        TRY_CAST(REPLACE(g.ImporteCrudo,',', '')AS NUMERIC(10, 2)) AS Importe,
+       CASE
+		  WHEN g.ImporteCrudo IS NULL OR LTRIM(RTRIM(g.ImporteCrudo)) = '' THEN NULL
+		  WHEN g.ImporteCrudo LIKE '%,%' OR g.ImporteCrudo LIKE '%.%' THEN
+			   CAST(
+				 CAST(REPLACE(REPLACE(LTRIM(RTRIM(g.ImporteCrudo)), ',', ''), '.', '') AS bigint) / 100.0
+				 AS NUMERIC(12,2)
+			   )
+		  ELSE
+			   CAST(LTRIM(RTRIM(g.ImporteCrudo)) AS NUMERIC(12,2))
+		END AS Importe,
         tg.nombre + ' - ' + g.SubTipoNombre AS detalle
     FROM #gastos_archivo AS t
     INNER JOIN administracion.consorcio AS c ON t.ConsorcioNombre = c.nombre
@@ -208,9 +217,9 @@ GO
 
 
 EXEC administracion.ImportarGastos
-    @RutaArchivo='D:\TP_SQL\consorcios\Servicios.Servicios.json';
+    @RutaArchivo='C:\Users\lauti\OneDrive\Desktop\Altos De SaintJust\Servicios.Servicios.json';
 GO
 
 
 SELECT * FROM expensa.gasto
-DELETE FROM expensa.gasto
+--DELETE FROM expensa.gasto

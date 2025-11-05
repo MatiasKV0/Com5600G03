@@ -57,7 +57,7 @@ BEGIN
 
 
 	---insertar consorcios
-	INSERT INTO administracion.consorcio(nombre, domicilio,superficie_total_m2,cuit,fecha_alta)
+	INSERT INTO administracion.consorcio(nombre, domicilio,superficie_total_m2,fecha_alta)
 	SELECT 
 		LTRIM(RTRIM(c.nombreConsorcio)),
         LTRIM(RTRIM(c.domicilio)),

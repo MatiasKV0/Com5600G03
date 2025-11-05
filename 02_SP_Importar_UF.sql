@@ -29,7 +29,7 @@ BEGIN
     NombreConsorcio VARCHAR(200),
     NroUF           VARCHAR(20),
     Piso            VARCHAR(20),
-    Depto           VARCHAR(20),
+    Depto			VARCHAR(20),
     Coeficiente     VARCHAR(50),
     M2UF            VARCHAR(50),
     Bauleras        VARCHAR(10),
@@ -110,7 +110,7 @@ BEGIN
   SET NOCOUNT ON;
 
 
- --------------------------creo tabla temporal
+  --------------------------creo tabla temporal
   CREATE TABLE #uf_archivo (
     NombreConsorcio VARCHAR(200),
     NroUF           VARCHAR(20),
@@ -135,7 +135,7 @@ BEGIN
       );';
   EXEC (@sql_bulk);
 
-  --- INSERTO EN LA TABLA
+  -------- insertar tabla
   INSERT INTO unidad_funcional.baulera 
   (consorcio_id,uf_id,codigo,superficie_m2,porcentaje)
   select
@@ -221,8 +221,7 @@ BEGIN
         FIRSTROW        = 2
       );';
   EXEC (@sql_bulk);
-
-  --- INSERTO EN LA TABLA
+----------inserto tabla
 
 
   INSERT INTO unidad_funcional.cochera

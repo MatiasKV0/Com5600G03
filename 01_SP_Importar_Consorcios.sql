@@ -22,7 +22,7 @@ GO
 
 
 CREATE OR ALTER PROCEDURE administracion.ImportarConsorcios
-    @RutaArchivo VARCHAR(300)
+    @RutaArchivo NVARCHAR(300)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -42,7 +42,7 @@ BEGIN
 
 
 	----bulk insert en la tabla temporal----
-    DECLARE @SQL VARCHAR(MAX) = '
+    DECLARE @SQL NVARCHAR(MAX) = '
         BULK INSERT #Consorcios
         FROM ''' + @RutaArchivo + '''
         WITH (

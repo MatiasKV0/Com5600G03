@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Pr·ctico Integrador
-ComisiÛn: 5600
+Trabajo Pr√°ctico Integrador
+Comisi√≥n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -27,53 +27,48 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+
+
+
     -- Tabla temporal con la estructura EXACTA del CSV
     CREATE TABLE #Consorcios (
-        [Consorcio] VARCHAR(100),
-        [Nombre del consorcio] VARCHAR(200),
-        Domicilio VARCHAR(200),
-        [Cant unidades funcionales] INT,
-        [m2 totales] NUMERIC(12,2)
+        consorcioId VARCHAR(100), 
+        nombreConsorcio VARCHAR(200),
+        domicilio VARCHAR(200),
+        cantUF INT,
+        m2total NUMERIC(12,2)
     );
 
+
+
+	----bulk insert en la tabla temporal----
     DECLARE @SQL NVARCHAR(MAX) = '
         BULK INSERT #Consorcios
         FROM ''' + @RutaArchivo + '''
         WITH (
-            FORMAT = ''CSV'',
             FIELDTERMINATOR = '';'',
-            ROWTERMINATOR = ''0x0a'',
-            FIRSTROW = 2,
-            CODEPAGE = ''65001''
+            ROWTERMINATOR = ''\n'',
+			CODEPAGE =''65001'',
+            FIRSTROW = 2
         );
     ';
-    
-    BEGIN TRY
-        EXEC sp_executesql @SQL;
+    EXEC (@SQL);
 
-    END TRY
-    BEGIN CATCH
-        PRINT 'Error al cargar el CSV: ' + ERROR_MESSAGE();
-        DROP TABLE #Consorcios;
-        RETURN;
-    END CATCH;
 
-    -- Insertar en tabla principal (sin administracion_id por ahora)
-    INSERT INTO administracion.consorcio
-        (nombre, domicilio, superficie_total_m2, fecha_alta)
-    SELECT 
-        LTRIM(RTRIM([Nombre del consorcio])),
-        LTRIM(RTRIM(Domicilio)),
-        TRY_CAST([m2 totales] AS NUMERIC(12,2)),
-        GETDATE()
 
-    FROM #Consorcios c
-    WHERE NOT EXISTS (
-        SELECT 1 FROM administracion.consorcio co 
-        WHERE co.nombre = LTRIM(RTRIM(c.[Nombre del consorcio]))
-    );
+	---insertar consorcios
+	INSERT INTO administracion.consorcio(nombre, domicilio,superficie_total_m2,cuit,fecha_alta)
+	SELECT 
+		LTRIM(RTRIM(c.nombreConsorcio)),
+        LTRIM(RTRIM(c.domicilio)),
+		m2total,
+		GETDATE() AS fecha_alta
+	FROM #Consorcios c
+	WHERE NOT EXISTS(
+		SELECT 1 FROM administracion.consorcio a where a.nombre=c.nombreConsorcio
+	);
 
-    PRINT 'Consorcios importados correctamente. Filas insertadas: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
+
 
     DROP TABLE #Consorcios;
 
@@ -83,3 +78,9 @@ GO
 EXEC administracion.ImportarConsorcios 
     @RutaArchivo = 'C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\datos varios(Consorcios).csv';
 GO
+
+select consorcio_id,nombre,domicilio,superficie_total_m2,fecha_alta from administracion.consorcio
+GO
+
+
+--delete from administracion.consorcio

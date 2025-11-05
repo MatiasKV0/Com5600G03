@@ -26,16 +26,16 @@ BEGIN
   SET NOCOUNT ON;
   --------------------------creo tabla temporal
   CREATE TABLE #uf_archivo (
-    NombreConsorcio NVARCHAR(200),
-    NroUF           NVARCHAR(20),
-    Piso            NVARCHAR(20),
-    Depto           NVARCHAR(20),
-    Coeficiente     NVARCHAR(50),
-    M2UF            NVARCHAR(50),
-    Bauleras        NVARCHAR(10),
-    Cochera         NVARCHAR(10),
-    M2Baulera       NVARCHAR(50),
-    M2Cochera       NVARCHAR(50)
+    NombreConsorcio VARCHAR(200),
+    NroUF           VARCHAR(20),
+    Piso            VARCHAR(20),
+    Depto			VARCHAR(20),
+    Coeficiente     VARCHAR(50),
+    M2UF            VARCHAR(50),
+    Bauleras        VARCHAR(10),
+    Cochera         VARCHAR(10),
+    M2Baulera       VARCHAR(50),
+    M2Cochera       VARCHAR(50)
   );
   --------------------bulk insert en la tabla temporal
   DECLARE @sql_bulk NVARCHAR(MAX) =
@@ -112,16 +112,16 @@ BEGIN
 
   --------------------------creo tabla temporal
   CREATE TABLE #uf_archivo (
-    NombreConsorcio NVARCHAR(200),
-    NroUF           NVARCHAR(20),
-    Piso            NVARCHAR(20),
-    Depto           NVARCHAR(20),
-    Coeficiente     NVARCHAR(50),
-    M2UF            NVARCHAR(50),
-    Bauleras        NVARCHAR(10),
-    Cochera         NVARCHAR(10),
-    M2Baulera       NVARCHAR(50),
-    M2Cochera       NVARCHAR(50)
+    NombreConsorcio VARCHAR(200),
+    NroUF           VARCHAR(20),
+    Piso            VARCHAR(20),
+    Depto           VARCHAR(20),
+    Coeficiente     VARCHAR(50),
+    M2UF            VARCHAR(50),
+    Bauleras        VARCHAR(10),
+    Cochera         VARCHAR(10),
+    M2Baulera       VARCHAR(50),
+    M2Cochera       VARCHAR(50)
   );
   --------------------bulk insert en la tabla temporal
   DECLARE @sql_bulk NVARCHAR(MAX) =
@@ -199,16 +199,16 @@ BEGIN
 
   --------------------------creo tabla temporal
   CREATE TABLE #uf_archivo (
-    NombreConsorcio NVARCHAR(200),
-    NroUF           NVARCHAR(20),
-    Piso            NVARCHAR(20),
-    Depto           NVARCHAR(20),
-    Coeficiente     NVARCHAR(50),
-    M2UF            NVARCHAR(50),
-    Bauleras        NVARCHAR(10),
-    Cochera         NVARCHAR(10),
-    M2Baulera       NVARCHAR(50),
-    M2Cochera       NVARCHAR(50)
+    NombreConsorcio VARCHAR(200),
+    NroUF           VARCHAR(20),
+    Piso            VARCHAR(20),
+    Depto           VARCHAR(20),
+    Coeficiente     VARCHAR(50),
+    M2UF            VARCHAR(50),
+    Bauleras        VARCHAR(10),
+    Cochera         VARCHAR(10),
+    M2Baulera       VARCHAR(50),
+    M2Cochera       VARCHAR(50)
   );
   --------------------bulk insert en la tabla temporal
   DECLARE @sql_bulk NVARCHAR(MAX) =

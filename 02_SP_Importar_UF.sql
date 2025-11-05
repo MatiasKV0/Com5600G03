@@ -14,7 +14,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
 */
 
--- IMPORTAR TABLA DE UNIDAD FUNCIONAL DESDE CSV.
+-- IMPORTAR TABLA DE UNIDAD FUNCIONAL DESDE TXT.
 
 USE Com5600G03;
 GO
@@ -24,9 +24,7 @@ CREATE OR ALTER PROCEDURE administracion.ImportarUF
 AS
 BEGIN
   SET NOCOUNT ON;
-
-  -- 1) Cargar archivo 
-  IF OBJECT_ID('tempdb..#uf_archivo') IS NOT NULL DROP TABLE #uf_archivo;
+  --------------------------creo tabla temporal
   CREATE TABLE #uf_archivo (
     NombreConsorcio NVARCHAR(200),
     NroUF           NVARCHAR(20),
@@ -39,84 +37,71 @@ BEGIN
     M2Baulera       NVARCHAR(50),
     M2Cochera       NVARCHAR(50)
   );
+  --------------------bulk insert en la tabla temporal
+  DECLARE @sql_bulk NVARCHAR(MAX) =
+    N'BULK INSERT #uf_archivo
+      FROM N''' + @RutaArchivo + N'''
+      WITH (
+        FIELDTERMINATOR = ''\t'',
+        ROWTERMINATOR   = ''\n'',
+        CODEPAGE        = ''65001'',
+        FIRSTROW        = 2
+      );';
+  EXEC (@sql_bulk);
 
-  DECLARE @sql_bulk NVARCHAR(MAX) = N'
-    BULK INSERT #uf_archivo
-    FROM N''' + REPLACE(@RutaArchivo,'''','''''') + N'''
-    WITH (
-      FIELDTERMINATOR = ''\t'',
-      ROWTERMINATOR   = ''0x0a'',
-      CODEPAGE        = ''65001'',
-      FIRSTROW        = 2,
-      TABLOCK
-    );';
-  EXEC(@sql_bulk);
+  --- INSERTO EN LA TABLA
 
-  -- 2) Normalizar + buscar consorcio_id + armar código
-  IF OBJECT_ID('tempdb..#uf_limpio') IS NOT NULL DROP TABLE #uf_limpio;
-  ;WITH datos_limpios AS (
-    SELECT
-      LTRIM(RTRIM(NombreConsorcio)) AS consorcio_nombre,
-      LTRIM(RTRIM(NroUF))           AS nro_uf,
-      LTRIM(RTRIM(Piso))            AS piso,
-      LTRIM(RTRIM(Depto))           AS depto,
-      TRY_CONVERT(NUMERIC(12,2), REPLACE(REPLACE(LTRIM(RTRIM(M2UF)),     '.', ''), ',', '.')) AS m2_uf,
-      TRY_CONVERT(NUMERIC(7,4),  REPLACE(REPLACE(LTRIM(RTRIM(Coeficiente)),'.',''), ',', '.')) AS coef_uf
-    FROM #uf_archivo
-  )
-  SELECT 
+
+  INSERT INTO unidad_funcional.unidad_funcional
+    (consorcio_id, codigo, piso, depto, superficie_m2, porcentaje)
+  SELECT
     c.consorcio_id,
-    d.consorcio_nombre,
-    d.nro_uf,
-    d.piso,
-    d.depto,
-    d.m2_uf,
-    d.coef_uf,
-    codigo_uf = d.nro_uf
-  INTO #uf_limpio
-  FROM datos_limpios d
+    u.NroUF                               AS codigo,
+    u.Piso,
+    u.Depto,
+    TRY_CONVERT(NUMERIC(12,2), u.M2UF)    AS superficie_m2,
+	-----calculo el porcentaje--------
+	CAST(
+		  CASE
+			WHEN SUM(TRY_CONVERT(NUMERIC(18,6), u.M2UF))
+				 OVER (PARTITION BY c.consorcio_id) > 0
+			THEN 100.0 * TRY_CONVERT(NUMERIC(18,6), u.M2UF)
+				 /  SUM(TRY_CONVERT(NUMERIC(18,6), u.M2UF))
+					OVER (PARTITION BY c.consorcio_id)
+			ELSE 0
+		  END
+		  AS NUMERIC(7,4)
+		) AS porcentaje 
+	----------------------
+  FROM #uf_archivo u
   JOIN administracion.consorcio c
-    ON c.nombre = d.consorcio_nombre;
+    ON c.nombre = u.NombreConsorcio
+  WHERE NOT EXISTS (
+    SELECT 1
+    FROM unidad_funcional.unidad_funcional t
+    WHERE t.consorcio_id = c.consorcio_id
+      AND t.piso         = u.Piso
+      AND t.depto        = u.Depto
+  );
 
-  -- 3) Insertar o Actualizar UF
-
-  MERGE INTO unidad_funcional.unidad_funcional AS target
-  USING #uf_limpio AS source
-  ON (target.consorcio_id = source.consorcio_id 
-      AND target.piso = source.piso
-      AND target.depto = source.depto)
-
-  WHEN MATCHED AND (target.superficie_m2 = 0 OR target.porcentaje = 0) THEN
-      UPDATE SET
-          target.codigo = source.codigo_uf,
-          target.superficie_m2 = ISNULL(source.m2_uf, 0),
-          target.porcentaje = ISNULL(source.coef_uf, 0)
-
-  WHEN NOT MATCHED BY TARGET THEN
-      INSERT (consorcio_id, codigo, piso, depto, superficie_m2, porcentaje)
-      VALUES (
-          source.consorcio_id,
-          source.codigo_uf,
-          source.piso,
-          source.depto,
-          ISNULL(source.m2_uf, 0),
-          ISNULL(source.coef_uf, 0)
-      );
-
-  DROP TABLE IF EXISTS #uf_limpio;
   DROP TABLE IF EXISTS #uf_archivo;
 
-  PRINT 'UF importadas OK';
+  PRINT 'UF importadas (solo nuevas) OK';
 END;
 GO
 
-
 EXEC administracion.ImportarUF
-@RutaArchivo='C:\Users\matia\OneDrive\Escritorio\Consorcios\UF por consorcio.txt';
+  @RutaArchivo = 'C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\UF por consorcio.txt';
 GO
 
+
+select c.uf_id,a.nombre,c.codigo,c.piso,c.depto,c.superficie_m2,c.porcentaje from unidad_funcional.unidad_funcional c join administracion.consorcio a on a.consorcio_id=c.consorcio_id
+
+--delete from unidad_funcional.unidad_funcional
+
+
 -----------------------------------------------------------------------------------------------
--------------------IMPORTAR BAULERAS DESDE MISMO CSV--------------------------------------
+-------------------IMPORTAR BAULERAS DESDE TXT--------------------------------------
 
 CREATE OR ALTER PROCEDURE administracion.ImportarBauleras
   @RutaArchivo NVARCHAR(400)
@@ -124,9 +109,9 @@ AS
 BEGIN
   SET NOCOUNT ON;
 
-  -- 1) Cargar archivo
-  IF OBJECT_ID('tempdb..#ba_archivo') IS NOT NULL DROP TABLE #ba_archivo;
-  CREATE TABLE #ba_archivo (
+
+  --------------------------creo tabla temporal
+  CREATE TABLE #uf_archivo (
     NombreConsorcio NVARCHAR(200),
     NroUF           NVARCHAR(20),
     Piso            NVARCHAR(20),
@@ -138,77 +123,69 @@ BEGIN
     M2Baulera       NVARCHAR(50),
     M2Cochera       NVARCHAR(50)
   );
+  --------------------bulk insert en la tabla temporal
+  DECLARE @sql_bulk NVARCHAR(MAX) =
+    N'BULK INSERT #uf_archivo
+      FROM N''' + @RutaArchivo + N'''
+      WITH (
+        FIELDTERMINATOR = ''\t'',
+        ROWTERMINATOR   = ''\n'',
+        CODEPAGE        = ''65001'',
+        FIRSTROW        = 2
+      );';
+  EXEC (@sql_bulk);
 
-  DECLARE @sql_bulk NVARCHAR(MAX) = N'
-    BULK INSERT #ba_archivo
-    FROM N''' + REPLACE(@RutaArchivo,'''','''''') + N'''
-    WITH (
-      FIELDTERMINATOR = ''\t'',
-      ROWTERMINATOR   = ''0x0a'',
-      CODEPAGE        = ''65001'',
-      FIRSTROW        = 2,
-      TABLOCK
-    );';
-  EXEC(@sql_bulk);
-
-  -- 2) Normalizar + consorcio_id 
-  IF OBJECT_ID('tempdb..#ba_limpio') IS NOT NULL DROP TABLE #ba_limpio;
-  ;WITH datos_limpios AS (
-    SELECT
-      LTRIM(RTRIM(NombreConsorcio)) AS consorcio_nombre,
-      LTRIM(RTRIM(NroUF))           AS nro_uf,
-      LTRIM(RTRIM(Piso))            AS piso,
-      LTRIM(RTRIM(Depto))           AS depto,
-      UPPER(LTRIM(RTRIM(Bauleras))) AS flag_baulera,
-      TRY_CONVERT(NUMERIC(12,2), REPLACE(REPLACE(LTRIM(RTRIM(M2UF)),      '.', ''), ',', '.')) AS m2_uf,
-      TRY_CONVERT(NUMERIC(12,2), REPLACE(REPLACE(LTRIM(RTRIM(M2Baulera)), '.', ''), ',', '.')) AS m2_baulera
-    FROM #ba_archivo
-  )
-  SELECT 
-    c.consorcio_id,
-    d.nro_uf,
-    d.piso,
-    d.depto,
-    d.flag_baulera,
-    d.m2_uf,
-    d.m2_baulera
-  INTO #ba_limpio
-  FROM datos_limpios d
+  -------- insertar tabla
+  INSERT INTO unidad_funcional.baulera 
+  (consorcio_id,uf_id,codigo,superficie_m2,porcentaje)
+  select
+		c.consorcio_id,
+		uf.uf_id,
+		---genero un codigo para la baulera---
+		CONCAT('B-', LTRIM(RTRIM(u.NroUF))) AS codigo,
+		--------------------------------------
+		TRY_CONVERT(NUMERIC(12,2), u.M2Baulera) AS superficie_m2,
+		-----calculo el porcentaje--------
+		CAST(
+			  CASE
+				WHEN SUM(TRY_CONVERT(NUMERIC(18,6), u.M2Baulera))
+					 OVER (PARTITION BY c.consorcio_id) > 0
+				THEN 100.0 * TRY_CONVERT(NUMERIC(18,6), u.M2Baulera)
+					 /  SUM(TRY_CONVERT(NUMERIC(18,6), u.M2Baulera))
+						OVER (PARTITION BY c.consorcio_id)
+				ELSE 0
+			  END
+			  AS NUMERIC(7,4)
+			) AS porcentaje 
+		------------------------------------
+   FROM #uf_archivo u
   JOIN administracion.consorcio c
-    ON c.nombre = d.consorcio_nombre;
-
-  -- 3) Insertar Bauleras
-  INSERT INTO unidad_funcional.baulera
-    (consorcio_id, uf_id, codigo, superficie_m2, porcentaje)
-  SELECT
-    x.consorcio_id,
-    u.uf_id,
-    CONCAT('B-', u.uf_id) AS codigo,
-    ISNULL(x.m2_baulera, 0),
-    CASE WHEN x.m2_baulera IS NOT NULL AND x.m2_uf IS NOT NULL AND x.m2_uf > 0
-         THEN (x.m2_baulera / x.m2_uf) * u.porcentaje ELSE 0 END
-  FROM #ba_limpio x
-  JOIN unidad_funcional.unidad_funcional u
-    ON u.consorcio_id = x.consorcio_id
-   AND u.piso  = x.piso
-   AND u.depto = x.depto
-  WHERE x.flag_baulera = 'SI'
+    ON c.nombre = u.NombreConsorcio
+  JOIN unidad_funcional.unidad_funcional uf          
+    ON uf.consorcio_id = c.consorcio_id
+   AND uf.codigo       =u.NroUF
+  WHERE u.Bauleras = 'SI'
     AND NOT EXISTS (
-      SELECT 1 FROM unidad_funcional.baulera b
-      WHERE b.uf_id = u.uf_id AND b.codigo = CONCAT('B-', u.uf_id)
-    );
-
-  DROP TABLE IF EXISTS #ba_limpio;
-  DROP TABLE IF EXISTS #ba_archivo;
+      SELECT 1
+      FROM unidad_funcional.baulera b
+      WHERE b.codigo = CONCAT('B-', u.NroUF)
+   )
+	
+  DROP TABLE IF EXISTS #uf_archivo;
 
   PRINT 'Bauleras importadas OK';
 END;
 GO
 
+-----------------------------EJECUTAR----------------------------------------------------------
 
 EXEC administracion.ImportarBauleras
-@RutaArchivo='C:\Users\matia\OneDrive\Escritorio\Consorcios\UF por consorcio.txt';
+@RutaArchivo='C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\UF por consorcio.txt';
 GO
+
+select * from unidad_funcional.baulera
+--delete from unidad_funcional.baulera
+-----------------------------------------------------------------------------------------------
 
 
 -----------------------------------------------------------------------------------------------
@@ -220,9 +197,8 @@ AS
 BEGIN
   SET NOCOUNT ON;
 
-  -- 1) Cargar archivo 
-  IF OBJECT_ID('tempdb..#co_archivo') IS NOT NULL DROP TABLE #co_archivo;
-  CREATE TABLE #co_archivo (
+  --------------------------creo tabla temporal
+  CREATE TABLE #uf_archivo (
     NombreConsorcio NVARCHAR(200),
     NroUF           NVARCHAR(20),
     Piso            NVARCHAR(20),
@@ -234,74 +210,67 @@ BEGIN
     M2Baulera       NVARCHAR(50),
     M2Cochera       NVARCHAR(50)
   );
+  --------------------bulk insert en la tabla temporal
+  DECLARE @sql_bulk NVARCHAR(MAX) =
+    N'BULK INSERT #uf_archivo
+      FROM N''' + @RutaArchivo + N'''
+      WITH (
+        FIELDTERMINATOR = ''\t'',
+        ROWTERMINATOR   = ''\n'',
+        CODEPAGE        = ''65001'',
+        FIRSTROW        = 2
+      );';
+  EXEC (@sql_bulk);
+----------inserto tabla
 
-  DECLARE @sql_bulk NVARCHAR(MAX) = N'
-    BULK INSERT #co_archivo
-    FROM N''' + REPLACE(@RutaArchivo,'''','''''') + N'''
-    WITH (
-      FIELDTERMINATOR = ''\t'',
-      ROWTERMINATOR   = ''0x0a'',
-      CODEPAGE        = ''65001'',
-      FIRSTROW        = 2,
-      TABLOCK
-    );';
-  EXEC(@sql_bulk);
 
-  -- 2) Normalizar + consorcio_id
-  IF OBJECT_ID('tempdb..#co_limpio') IS NOT NULL DROP TABLE #co_limpio;
-  ;WITH datos_limpios AS (
-    SELECT
-      LTRIM(RTRIM(NombreConsorcio)) AS consorcio_nombre,
-      LTRIM(RTRIM(NroUF))           AS nro_uf,
-      LTRIM(RTRIM(Piso))            AS piso,
-      LTRIM(RTRIM(Depto))           AS depto,
-      UPPER(LTRIM(RTRIM(Cochera)))  AS flag_cochera,
-      TRY_CONVERT(NUMERIC(12,2), REPLACE(REPLACE(LTRIM(RTRIM(M2UF)),      '.', ''), ',', '.')) AS m2_uf,
-      TRY_CONVERT(NUMERIC(12,2), REPLACE(REPLACE(LTRIM(RTRIM(M2Cochera)), '.', ''), ',', '.')) AS m2_cochera
-    FROM #co_archivo
-  )
-  SELECT 
-    c.consorcio_id,
-    d.nro_uf,
-    d.piso,
-    d.depto,
-    d.flag_cochera,
-    d.m2_uf,
-    d.m2_cochera
-  INTO #co_limpio
-  FROM datos_limpios d
-  JOIN administracion.consorcio c
-    ON c.nombre = d.consorcio_nombre;
-
-  -- 3) Insertar Cocheras
   INSERT INTO unidad_funcional.cochera
     (consorcio_id, uf_id, codigo, superficie_m2, porcentaje)
-  SELECT
-    x.consorcio_id,
-    u.uf_id,
-    CONCAT('C-', u.uf_id) AS codigo,
-    ISNULL(x.m2_cochera, 0),
-    CASE WHEN x.m2_cochera IS NOT NULL AND x.m2_uf IS NOT NULL AND x.m2_uf > 0
-         THEN (x.m2_cochera / x.m2_uf) * u.porcentaje ELSE 0 END
-  FROM #co_limpio x
-  JOIN unidad_funcional.unidad_funcional u
-    ON u.consorcio_id = x.consorcio_id
-   AND u.piso  = x.piso
-   AND u.depto = x.depto
-  WHERE x.flag_cochera = 'SI'
+   select
+		c.consorcio_id,
+		uf.uf_id,
+		---genero un codigo para la baulera---
+		CONCAT('C-', LTRIM(RTRIM(u.NroUF))) AS codigo,
+		--------------------------------------
+		TRY_CONVERT(NUMERIC(12,2), u.M2Cochera) AS superficie_m2,
+		-----calculo el porcentaje--------
+		CAST(
+			  CASE
+				WHEN SUM(TRY_CONVERT(NUMERIC(18,6), u.M2Cochera))
+					 OVER (PARTITION BY c.consorcio_id) > 0
+				THEN 100.0 * TRY_CONVERT(NUMERIC(18,6), u.M2Cochera)
+					 /  SUM(TRY_CONVERT(NUMERIC(18,6), u.M2Cochera))
+						OVER (PARTITION BY c.consorcio_id)
+				ELSE 0
+			  END
+			  AS NUMERIC(7,4)
+			) AS porcentaje 
+		------------------------------------
+   FROM #uf_archivo u
+  JOIN administracion.consorcio c
+    ON c.nombre = u.NombreConsorcio
+  JOIN unidad_funcional.unidad_funcional uf          
+    ON uf.consorcio_id = c.consorcio_id
+   AND uf.codigo       =u.NroUF
+  WHERE u.Cochera = 'SI'
     AND NOT EXISTS (
-      SELECT 1 FROM unidad_funcional.cochera c
-      WHERE c.uf_id = u.uf_id AND c.codigo = CONCAT('C-', u.uf_id)
-    );
+      SELECT 1
+      FROM unidad_funcional.cochera co
+      WHERE co.codigo = CONCAT('C-', u.NroUF)
+   )
+	
+  DROP TABLE IF EXISTS #uf_archivo;
 
-  DROP TABLE IF EXISTS #co_limpio;
-  DROP TABLE IF EXISTS #co_archivo;
+
 
   PRINT 'Cocheras importadas OK';
 END;
 GO
 
-
+-----------------------EJECUTAR-----------------------
 EXEC administracion.ImportarCocheras
-@RutaArchivo='C:\Users\matia\OneDrive\Escritorio\Consorcios\UF por consorcio.txt';
+@RutaArchivo='C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\UF por consorcio.txt';
 GO
+---------------------------------------------------------
+select * from unidad_funcional.cochera
+-- delete from unidad_funcional.cochera

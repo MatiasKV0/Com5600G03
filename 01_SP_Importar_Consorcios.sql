@@ -57,15 +57,26 @@ BEGIN
         );
     ';
     EXEC (@SQL);
+	 
+    -- Crear administración base si no existe
+    
+    IF NOT EXISTS (SELECT 1 FROM administracion.administracion WHERE nombre = 'Administración General')
+    BEGIN
+        INSERT INTO administracion.administracion (nombre, cuit, domicilio, email, telefono)
+        VALUES ('Administración General', '30-00000000-0', 'Av. Principal 100', 'admin@email.com', '1122334455');
+		print 'Administracion general creada.';
+    END
+	DECLARE @admin_id INT = (SELECT TOP 1 administracion_id FROM administracion.administracion WHERE nombre = 'Administración General');
 
 
 	 -- 2) Insertar consorcios nuevos y capturar IDs
     DECLARE @Nuevos TABLE (consorcio_id INT PRIMARY KEY, nombre NVARCHAR(200));
 
-    INSERT INTO administracion.consorcio (nombre, domicilio, superficie_total_m2, fecha_alta)
+    INSERT INTO administracion.consorcio (administracion_id, nombre, domicilio, superficie_total_m2, fecha_alta)
     OUTPUT inserted.consorcio_id, inserted.nombre INTO @Nuevos(consorcio_id, nombre)
     SELECT
-        LTRIM(RTRIM(c.nombreConsorcio)),
+        @admin_id,
+		LTRIM(RTRIM(c.nombreConsorcio)),
         LTRIM(RTRIM(c.domicilio)),
         c.m2total,
         GETDATE()
@@ -73,7 +84,7 @@ BEGIN
     WHERE NOT EXISTS (
         SELECT 1 FROM administracion.consorcio a WHERE a.nombre = c.nombreConsorcio
     );
-
+	print 'Consorcio insertado.';
     -- Si no hubo nuevos, terminar
     IF NOT EXISTS (SELECT 1 FROM @Nuevos)
     BEGIN
@@ -119,7 +130,7 @@ BEGIN
         FROM administracion.consorcio_cuenta_bancaria l
         WHERE l.consorcio_id = cbu.consorcio_id AND l.es_principal = 1
     );
-
+	print 'Cuentas bancarias listas.';
 
     DROP TABLE #Consorcios;
 END;
@@ -129,12 +140,13 @@ EXEC administracion.ImportarConsorcios
     @RutaArchivo = 'C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\datos varios(Consorcios).csv';
 GO
 
-select consorcio_id,nombre,domicilio,superficie_total_m2,fecha_alta from administracion.consorcio
+select administracion_id,consorcio_id,nombre,domicilio,superficie_total_m2,fecha_alta from administracion.consorcio
 GO
 select * from administracion.cuenta_bancaria
 select * from administracion.consorcio_cuenta_bancaria
 
 
-/*delete from administracion.cuenta_bancaria
-delete from administracion.consorcio_cuenta_bancaria
-delete from administracion.consorcio*/
+--delete from administracion.cuenta_bancaria
+--delete from administracion.consorcio_cuenta_bancaria
+--delete from administracion.consorcio
+--delete from administracion.administracion

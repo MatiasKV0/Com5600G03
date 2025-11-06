@@ -137,7 +137,7 @@ END;
 GO
 
 EXEC administracion.ImportarConsorcios 
-    @RutaArchivo = 'C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\datos varios(Consorcios).csv';
+    @RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Consorcios).csv';
 GO
 
 select administracion_id,consorcio_id,nombre,domicilio,superficie_total_m2,fecha_alta from administracion.consorcio

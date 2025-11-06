@@ -91,12 +91,12 @@ END;
 GO
 
 EXEC administracion.ImportarUF
-  @RutaArchivo = 'C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\UF por consorcio.txt';
+  @RutaArchivo = 'D:\TP_SQL\consorcios\UF por consorcio.txt';
 GO
 
 
 select c.uf_id,a.nombre,c.codigo,c.piso,c.depto,c.superficie_m2,c.porcentaje from unidad_funcional.unidad_funcional c join administracion.consorcio a on a.consorcio_id=c.consorcio_id
-
+GO
 --delete from unidad_funcional.unidad_funcional
 
 
@@ -180,10 +180,11 @@ GO
 -----------------------------EJECUTAR----------------------------------------------------------
 
 EXEC administracion.ImportarBauleras
-@RutaArchivo='C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\UF por consorcio.txt';
+@RutaArchivo='D:\TP_SQL\consorcios\UF por consorcio.txt';
 GO
 
 select * from unidad_funcional.baulera
+GO
 --delete from unidad_funcional.baulera
 -----------------------------------------------------------------------------------------------
 
@@ -269,8 +270,9 @@ GO
 
 -----------------------EJECUTAR-----------------------
 EXEC administracion.ImportarCocheras
-@RutaArchivo='C:\Users\lauti\OneDrive\Desktop\Altos de SaintJust\UF por consorcio.txt';
+@RutaArchivo='D:\TP_SQL\consorcios\UF por consorcio.txt';
 GO
 ---------------------------------------------------------
 select * from unidad_funcional.cochera
+GO
 -- delete from unidad_funcional.cochera

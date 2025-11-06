@@ -31,12 +31,7 @@ BEGIN
     INSERT INTO #tipos (nombre)
     VALUES
         ('GASTOS ORDINARIOS'),
-        ('GASTOS EXTRAORDINARIOS'),
-        ('SERVICIOS PUBLICOS'),
-        ('SUELDOS Y CARGAS SOCIALES'),
-        ('MANTENIMIENTO'),
-        ('ADMINISTRACION Y HONORARIOS'),
-        ('BANCARIOS Y SEGUROS');
+        ('GASTOS EXTRAORDINARIOS');
 
     INSERT INTO expensa.tipo_gasto (nombre)
     SELECT t.nombre
@@ -51,21 +46,14 @@ BEGIN
 
     INSERT INTO #subtipos (tipo_nombre, sub_nombre)
     VALUES
-        ('GASTOS ORDINARIOS', 'LIMPIEZA'),
+        ('GASTOS ORDINARIOS', 'GASTOS DE LIMPIEZA'),
         ('GASTOS ORDINARIOS', 'GASTOS GENERALES'),
-        ('GASTOS EXTRAORDINARIOS', 'REPARACIONES'),
-		('GASTOS EXTRAORDINARIOS', 'CONSTRUCCION'),
-        ('SERVICIOS PUBLICOS', 'Agua'),
-        ('SERVICIOS PUBLICOS', 'Luz'),
-        ('SERVICIOS PUBLICOS', 'Internet'),
-        ('SUELDOS Y CARGAS SOCIALES', 'SUELDOS'),
-        ('SUELDOS Y CARGAS SOCIALES', 'CARGAS SOCIALES'),
-        ('MANTENIMIENTO', 'MANTENIMIENTO'),
-        ('MANTENIMIENTO', 'JARDINERIA'),
-        ('ADMINISTRACION Y HONORARIOS', 'ADMINISTRACION'),
-        ('ADMINISTRACION Y HONORARIOS', 'HONORARIOS'),
-        ('BANCARIOS Y SEGUROS', 'BANCARIOS'),
-        ('BANCARIOS Y SEGUROS', 'SEGUROS');
+        ('GASTOS ORDINARIOS','SERVICIOS PUBLICOS'),
+        ('GASTOS ORDINARIOS', 'GASTOS DE ADMINISTRACION'),
+        ('GASTOS ORDINARIOS', 'GASTOS BANCARIOS'),
+        ('GASTOS ORDINARIOS', 'SEGUROS'),
+		('GASTOS EXTRAORDINARIOS', 'CONSTRUCCIONES'),
+        ('GASTOS EXTRAORDINARIOS', 'REPARACIONES');
 
     INSERT INTO expensa.sub_tipo_gasto (tipo_id, nombre)
     SELECT tg.tipo_id, s.sub_nombre
@@ -84,6 +72,66 @@ GO
 
 EXEC administracion.CargarTipoGastos;
 GO
+
+SELECT * FROM expensa.tipo_gasto
+GO
+SELECT * FROM expensa.sub_tipo_gasto
+GO
+
+----------------------------------------------------------------------------------
+----------------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE administracion.CargarProveedores
+	@RutaArchivo NVARCHAR(400)
+AS
+BEGIN 
+	SET NOCOUNT ON;
+
+	CREATE TABLE #prove(
+		tipo NVARCHAR(100),
+		tipoNombre NVARCHAR(100),
+		detalle NVARCHAR(100),
+		nombreConsorcio VARCHAR(100)
+	);
+
+	DECLARE @sql_bulk NVARCHAR(MAX) =
+    N'BULK INSERT #prove
+    FROM N''' + @RutaArchivo + N'''
+    WITH (
+       FIELDTERMINATOR = '';'',
+       ROWTERMINATOR   = ''\n'',
+       CODEPAGE        = ''65001'',
+       FIRSTROW        = 2
+    );';
+	EXEC (@sql_bulk);
+
+	-----------INSERTO LOS DATOS------------
+	
+	INSERT INTO expensa.proveedor(
+		nombre,
+		detalle,
+		consorcio_id,
+		sub_id
+		
+	)
+	SELECT tipoNombre, detalle, con.consorcio_id, sg.sub_id FROM #prove AS P
+	JOIN administracion.consorcio AS con ON con.nombre =RTRIM(LTRIM(P.nombreConsorcio))
+	JOIN expensa.sub_tipo_gasto AS sg ON P.tipo = sg.nombre
+	WHERE NOT EXISTS(
+		SELECT 1 FROM expensa.proveedor as e
+		JOIN administracion.consorcio AS con ON con.administracion_id = e.consorcio_id
+		WHERE  P.nombreConsorcio = con.nombre AND P.detalle = e.detalle
+	)
+
+	
+END;
+GO
+
+EXEC administracion.CargarProveedores
+	@RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Proveedores).csv'
+GO
+
+SELECT * from expensa.proveedor
 
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
@@ -217,9 +265,11 @@ GO
 
 
 EXEC administracion.ImportarGastos
-    @RutaArchivo='C:\Users\lauti\OneDrive\Desktop\Altos De SaintJust\Servicios.Servicios.json';
+    @RutaArchivo='D:\TP_SQL\consorcios\Servicios.Servicios.json';
 GO
 
 
 SELECT * FROM expensa.gasto
 --DELETE FROM expensa.gasto
+
+

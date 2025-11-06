@@ -234,13 +234,6 @@ CREATE TABLE expensa.periodo (
 GO
 
 
-DROP TABLE IF EXISTS expensa.proveedor;
-CREATE TABLE expensa.proveedor (
-    proveedor_id INT IDENTITY(1,1) PRIMARY KEY,
-    nombre VARCHAR(200),
-    cuit VARCHAR(20)
-);
-GO
 
 
 DROP TABLE IF EXISTS expensa.tipo_gasto;
@@ -260,6 +253,18 @@ CREATE TABLE expensa.sub_tipo_gasto (
 );
 GO
 
+DROP TABLE IF EXISTS expensa.proveedor;
+CREATE TABLE expensa.proveedor (
+    proveedor_id INT IDENTITY(1,1) PRIMARY KEY,
+	consorcio_id INT,
+	sub_id INT,
+    nombre NVARCHAR(200),
+    detalle NVARCHAR(200),
+    cuit VARCHAR(20),
+	FOREIGN KEY (sub_id) REFERENCES expensa.sub_tipo_gasto(sub_id),
+	FOREIGN KEY (consorcio_id) REFERENCES administracion.consorcio
+);
+GO
 
 DROP TABLE IF EXISTS expensa.gasto;
 CREATE TABLE expensa.gasto (

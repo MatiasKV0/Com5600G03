@@ -70,7 +70,7 @@ BEGIN
 
 
 	 -- 2) Insertar consorcios nuevos y capturar IDs
-    DECLARE @Nuevos TABLE (consorcio_id INT PRIMARY KEY, nombre NVARCHAR(200));
+    DECLARE @Nuevos TABLE (consorcio_id INT PRIMARY KEY, nombre VARCHAR(200));
 
     INSERT INTO administracion.consorcio (administracion_id, nombre, domicilio, superficie_total_m2, fecha_alta)
     OUTPUT inserted.consorcio_id, inserted.nombre INTO @Nuevos(consorcio_id, nombre)

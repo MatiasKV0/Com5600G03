@@ -7,13 +7,13 @@ PRINT '';
 -- 1. Consorcios
 PRINT '1. Importando Consorcios...';
 EXEC administracion.ImportarConsorcios 
-    @RutaArchivo = 'C:\_temp\datos varios(Consorcios).csv';
+    @RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Consorcios).csv';
 PRINT '';
 
 -- 2. Unidades Funcionales
 PRINT '2. Importando UF...';
 EXEC administracion.ImportarArchivoUF
-    @RutaArchivo = 'C:\_temp\UF por consorcio.txt';
+    @RutaArchivo = 'D:\TP_SQL\consorcios\UF por consorcio.txt';
 PRINT '';
 
 -- 3. Tipos de Gasto
@@ -26,25 +26,25 @@ EXEC administracion.CrearPeriodos @Anio = 2025;
 -- 4. Proveedores
 PRINT '4. Importando Proveedores...';
 EXEC administracion.CargarProveedores
-    @RutaArchivo = 'C:\_temp\datos varios(Proveedores).csv';
+    @RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Proveedores).csv';
 PRINT '';
 
 -- 5. Gastos
 PRINT '5. Importando Gastos...';
 EXEC administracion.ImportarGastos
-    @RutaArchivo = 'C:\_temp\Servicios.Servicios.json';
+    @RutaArchivo = 'D:\TP_SQL\consorcios\Servicios.Servicios.json';
 PRINT '';
 
 -- 6. Cuentas
 PRINT '6. Importando Cuentas...';
 EXEC unidad_funcional.ImportarUnidadesFuncionales 
-     @RutaArchivo='C:\_temp\Inquilino-propietarios-UF.csv';
+     @RutaArchivo='D:\TP_SQL\consorcios\Inquilino-propietarios-UF.csv';
 PRINT '';
 
 -- 7. Personas
 PRINT '7. Importando Inquilinos y Propietarios...';
 EXEC persona.ImportarInquilinosPropietarios 
-    @RutaArchivo='C:\_temp\Inquilino-propietarios-datos.csv';
+    @RutaArchivo='D:\TP_SQL\consorcios\Inquilino-propietarios-datos.csv';
 PRINT '';
 
 -- 8. Pagos
@@ -67,7 +67,7 @@ END
 GO
 
 EXEC banco.ImportarYConciliarPagos
-    @RutaArchivo='C:\_temp\pagos_consorcios.csv',
+    @RutaArchivo='D:\TP_SQL\consorcios\pagos_consorcios.csv',
     @IdCuentaDestino = 1;
 PRINT '';
 

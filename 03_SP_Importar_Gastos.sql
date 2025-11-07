@@ -78,7 +78,6 @@ BEGIN
     
     BEGIN TRY
         CREATE TABLE #prove(
-            col1 VARCHAR(100),
             tipo NVARCHAR(100),
             tipoNombre NVARCHAR(100),
             detalle NVARCHAR(100),
@@ -89,10 +88,10 @@ BEGIN
         N'BULK INSERT #prove
         FROM N''' + @RutaArchivo + N'''
         WITH (
-           FIELDTERMINATOR = '','',
+           FIELDTERMINATOR = '';'',
            ROWTERMINATOR   = ''\n'',
            CODEPAGE        = ''65001'',
-           FIRSTROW        = 6  -- Saltar encabezados
+           FIRSTROW        = 2 
         );';
         EXEC (@sql_bulk);
 
@@ -246,7 +245,16 @@ BEGIN
                 ('Luz', t.Luz)
         ) AS g(SubTipoNombre, ImporteCrudo)
         INNER JOIN expensa.sub_tipo_gasto AS sg 
-            ON g.SubTipoNombre = sg.nombre
+            ON  sg.nombre = CASE g.SubTipoNombre
+				WHEN 'BANCARIOS' THEN 'GASTOS BANCARIOS'
+                WHEN 'LIMPIEZA' THEN 'GASTOS DE LIMPIEZA'
+                WHEN 'ADMINISTRACION' THEN 'GASTOS DE ADMINISTRACION'
+                WHEN 'SEGUROS' THEN 'SEGUROS'
+                WHEN 'GASTOS GENERALES' THEN 'GASTOS GENERALES'
+                WHEN 'Agua' THEN 'SERVICIOS PUBLICOS'
+                WHEN 'Luz' THEN 'SERVICIOS PUBLICOS'
+                ELSE g.SubTipoNombre
+            END
         INNER JOIN expensa.tipo_gasto AS tg 
             ON tg.tipo_id = sg.tipo_id
         LEFT JOIN expensa.proveedor AS pr

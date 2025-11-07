@@ -1,7 +1,7 @@
+:setvar BasePath "C:\_temp\"  --Modo SQLCMD
+
 USE Com5600G03;
 GO
-
-DECLARE @BasePath NVARCHAR(255) = 'C:\_temp\';
 
 PRINT '=== INICIO DE IMPORTACIONES ===';
 PRINT '';
@@ -9,13 +9,13 @@ PRINT '';
 -- 1. Consorcios
 PRINT '1. Importando Consorcios...';
 EXEC administracion.ImportarConsorcios 
-    @RutaArchivo = @BasePath + 'datos varios(Consorcios).csv';
+    @RutaArchivo = N'$(BasePath)datos varios(Consorcios).csv';
 PRINT '';
 
 -- 2. Unidades Funcionales
 PRINT '2. Importando UF...';
 EXEC administracion.ImportarArchivoUF
-    @RutaArchivo = @BasePath + 'UF por consorcio.txt';
+    @RutaArchivo = N'$(BasePath)UF por consorcio.txt';
 PRINT '';
 
 -- 3. Tipos de Gasto
@@ -28,25 +28,25 @@ EXEC administracion.CrearPeriodos @Anio = 2025;
 -- 4. Proveedores
 PRINT '4. Importando Proveedores...';
 EXEC administracion.CargarProveedores
-    @RutaArchivo = @BasePath + 'datos varios(Proveedores).csv';
+    @RutaArchivo = N'$(BasePath)datos varios(Proveedores).csv';
 PRINT '';
 
 -- 5. Gastos
 PRINT '5. Importando Gastos...';
 EXEC administracion.ImportarGastos
-    @RutaArchivo = @BasePath + 'Servicios.Servicios.json';
+    @RutaArchivo = N'$(BasePath)Servicios.Servicios.json';
 PRINT '';
 
 -- 6. Cuentas
 PRINT '6. Importando Cuentas...';
 EXEC unidad_funcional.ImportarUnidadesFuncionales 
-     @RutaArchivo = @BasePath + 'Inquilino-propietarios-UF.csv';
+     @RutaArchivo = N'$(BasePath)Inquilino-propietarios-UF.csv';
 PRINT '';
 
 -- 7. Personas
 PRINT '7. Importando Inquilinos y Propietarios...';
 EXEC persona.ImportarInquilinosPropietarios 
-    @RutaArchivo = @BasePath + 'Inquilino-propietarios-datos.csv';
+    @RutaArchivo = N'$(BasePath)Inquilino-propietarios-datos.csv';
 PRINT '';
 
 -- 8. Pagos
@@ -69,7 +69,7 @@ END
 GO
 
 EXEC banco.ImportarYConciliarPagos
-    @RutaArchivo = @BasePath + 'pagos_consorcios.csv',
+    @RutaArchivo = N'$(BasePath)pagos_consorcios.csv', -- $(BasePath) sigue funcionando aquí
     @IdCuentaDestino = 1;
 PRINT '';
 
@@ -84,7 +84,6 @@ select * from administracion.cuenta_bancaria
 
 select * from banco.banco_movimiento
 select * from banco.pago
-
 
 select * from expensa.gasto
 select * from expensa.gasto_item

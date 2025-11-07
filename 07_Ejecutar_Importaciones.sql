@@ -7,13 +7,13 @@ PRINT '';
 -- 1. Consorcios
 PRINT '1. Importando Consorcios...';
 EXEC administracion.ImportarConsorcios 
-    @RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Consorcios).csv';
+    @RutaArchivo = 'C:\_temp\datos varios(Consorcios).csv';
 PRINT '';
 
 -- 2. Unidades Funcionales
 PRINT '2. Importando UF...';
 EXEC administracion.ImportarArchivoUF
-    @RutaArchivo = 'D:\TP_SQL\consorcios\UF por consorcio.txt';
+    @RutaArchivo = 'C:\_temp\consorcios\UF por consorcio.txt';
 PRINT '';
 
 -- 3. Tipos de Gasto
@@ -26,25 +26,25 @@ EXEC administracion.CrearPeriodos @Anio = 2025;
 -- 4. Proveedores
 PRINT '4. Importando Proveedores...';
 EXEC administracion.CargarProveedores
-    @RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Proveedores).csv';
+    @RutaArchivo = 'C:\_temp\consorcios\datos varios(Proveedores).csv';
 PRINT '';
 
 -- 5. Gastos
 PRINT '5. Importando Gastos...';
 EXEC administracion.ImportarGastos
-    @RutaArchivo = 'D:\TP_SQL\consorcios\Servicios.Servicios.json';
+    @RutaArchivo = 'C:\_temp\consorcios\Servicios.Servicios.json';
 PRINT '';
 
 -- 6. Cuentas
 PRINT '6. Importando Cuentas...';
 EXEC unidad_funcional.ImportarUnidadesFuncionales 
-     @RutaArchivo='D:\TP_SQL\consorcios\Inquilino-propietarios-UF.csv';
+     @RutaArchivo='C:\_temp\consorcios\Inquilino-propietarios-UF.csv';
 PRINT '';
 
 -- 7. Personas
 PRINT '7. Importando Inquilinos y Propietarios...';
 EXEC persona.ImportarInquilinosPropietarios 
-    @RutaArchivo='D:\TP_SQL\consorcios\Inquilino-propietarios-datos.csv';
+    @RutaArchivo='C:\_temp\consorcios\Inquilino-propietarios-datos.csv';
 PRINT '';
 
 -- 8. Pagos
@@ -58,16 +58,16 @@ BEGIN
     INSERT INTO administracion.consorcio_cuenta_bancaria (consorcio_id, cuenta_id, es_principal)
     VALUES (1, 1, 1);
     
-    PRINT 'Vínculo consorcio-cuenta (1-1) creado.';
+    PRINT 'VÃ­nculo consorcio-cuenta (1-1) creado.';
 END
 ELSE
 BEGIN
-    PRINT 'El vínculo consorcio-cuenta (1-1) ya existía. Omitiendo.';
+    PRINT 'El vÃ­nculo consorcio-cuenta (1-1) ya existÃ­a. Omitiendo.';
 END
 GO
 
 EXEC banco.ImportarYConciliarPagos
-    @RutaArchivo='D:\TP_SQL\consorcios\pagos_consorcios.csv',
+    @RutaArchivo='C:\_temp\consorcios\pagos_consorcios.csv',
     @IdCuentaDestino = 1;
 PRINT '';
 
@@ -82,10 +82,7 @@ select * from administracion.cuenta_bancaria
 select * from banco.banco_movimiento
 select * from banco.pago
 
-select * from expensa.envio_documento
-select * from expensa.expensa_uf
-select * from expensa.expensa_uf_detalle
-select * from expensa.expensa_uf_interes
+
 select * from expensa.gasto
 select * from expensa.gasto_item
 select * from expensa.sub_tipo_gasto

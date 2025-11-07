@@ -95,16 +95,20 @@ BEGIN
         );';
         EXEC (@sql_bulk);
 
-        -- Insertar proveedores únicos
-        INSERT INTO expensa.proveedor(
-            nombre,
-            detalle,
-            consorcio_id,
-            sub_id
-        )
-        SELECT 
-            LTRIM(RTRIM(P.tipoNombre)), 
-            LTRIM(RTRIM(P.detalle)), 
+        -- Tabla temporal para proveedores únicos del CSV
+        -- elimina duplicados dentro del archivo antes de insertar
+        CREATE TABLE #proveedores_unicos (
+            nombre VARCHAR(200),
+            detalle VARCHAR(250),
+            consorcio_id INT,
+            sub_id INT
+        );
+
+        -- Insertar solo registros únicos del CSV (eliminando duplicados del archivo)
+        INSERT INTO #proveedores_unicos (nombre, detalle, consorcio_id, sub_id)
+        SELECT DISTINCT
+            LTRIM(RTRIM(P.tipoNombre)) AS nombre, 
+            LTRIM(RTRIM(P.detalle)) AS detalle, 
             con.consorcio_id, 
             sg.sub_id 
         FROM #prove AS P
@@ -113,22 +117,39 @@ BEGIN
         INNER JOIN expensa.sub_tipo_gasto AS sg 
             ON LTRIM(RTRIM(P.tipo)) = sg.nombre
         WHERE P.tipo IS NOT NULL 
-          AND P.tipoNombre IS NOT NULL
-          AND NOT EXISTS(
+          AND P.tipoNombre IS NOT NULL;
+
+        -- Insertar proveedores únicos que no existen en la BD
+        INSERT INTO expensa.proveedor(
+            nombre,
+            detalle,
+            consorcio_id,
+            sub_id
+        )
+        SELECT 
+            pu.nombre,
+            pu.detalle,
+            pu.consorcio_id,
+            pu.sub_id
+        FROM #proveedores_unicos pu
+        WHERE NOT EXISTS(
             SELECT 1 
             FROM expensa.proveedor as e
-            WHERE e.consorcio_id = con.consorcio_id
-              AND e.sub_id = sg.sub_id
-              AND e.nombre = LTRIM(RTRIM(P.tipoNombre))
+            WHERE e.consorcio_id = pu.consorcio_id
+              AND e.sub_id = pu.sub_id
+              AND e.nombre = pu.nombre
         );
 
-        PRINT 'Proveedores cargados correctamente';
+       
+		print 'Proveedores importados'
         DROP TABLE #prove;
+        DROP TABLE #proveedores_unicos;
         
     END TRY
     BEGIN CATCH
         PRINT 'Error al cargar proveedores: ' + ERROR_MESSAGE();
         IF OBJECT_ID('tempdb..#prove') IS NOT NULL DROP TABLE #prove;
+        IF OBJECT_ID('tempdb..#proveedores_unicos') IS NOT NULL DROP TABLE #proveedores_unicos;
         THROW;
     END CATCH
 END;

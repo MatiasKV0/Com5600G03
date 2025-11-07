@@ -257,10 +257,7 @@ CREATE TABLE expensa.proveedor (
     cuit VARCHAR(20),
     consorcio_id INT NOT NULL,
     sub_id INT NOT NULL,
-    detalle VARCHAR(250),
-    FOREIGN KEY (consorcio_id) REFERENCES administracion.consorcio(consorcio_id),
-    FOREIGN KEY (sub_id) REFERENCES expensa.sub_tipo_gasto(sub_id),
-    CONSTRAINT UQ_proveedor_consorcio_sub UNIQUE (consorcio_id, sub_id, nombre)
+    detalle VARCHAR(250)
 );
 
 CREATE INDEX IX_proveedor_consorcio ON expensa.proveedor(consorcio_id, sub_id);

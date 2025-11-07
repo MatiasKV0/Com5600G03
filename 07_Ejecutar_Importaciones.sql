@@ -1,19 +1,21 @@
 USE Com5600G03;
 GO
 
+DECLARE @BasePath NVARCHAR(255) = 'C:\_temp\';
+
 PRINT '=== INICIO DE IMPORTACIONES ===';
 PRINT '';
 
 -- 1. Consorcios
 PRINT '1. Importando Consorcios...';
 EXEC administracion.ImportarConsorcios 
-    @RutaArchivo = 'C:\_temp\datos varios(Consorcios).csv';
+    @RutaArchivo = @BasePath + 'datos varios(Consorcios).csv';
 PRINT '';
 
 -- 2. Unidades Funcionales
 PRINT '2. Importando UF...';
 EXEC administracion.ImportarArchivoUF
-    @RutaArchivo = 'C:\_temp\consorcios\UF por consorcio.txt';
+    @RutaArchivo = @BasePath + 'UF por consorcio.txt';
 PRINT '';
 
 -- 3. Tipos de Gasto
@@ -26,25 +28,25 @@ EXEC administracion.CrearPeriodos @Anio = 2025;
 -- 4. Proveedores
 PRINT '4. Importando Proveedores...';
 EXEC administracion.CargarProveedores
-    @RutaArchivo = 'C:\_temp\consorcios\datos varios(Proveedores).csv';
+    @RutaArchivo = @BasePath + 'datos varios(Proveedores).csv';
 PRINT '';
 
 -- 5. Gastos
 PRINT '5. Importando Gastos...';
 EXEC administracion.ImportarGastos
-    @RutaArchivo = 'C:\_temp\consorcios\Servicios.Servicios.json';
+    @RutaArchivo = @BasePath + 'Servicios.Servicios.json';
 PRINT '';
 
 -- 6. Cuentas
 PRINT '6. Importando Cuentas...';
 EXEC unidad_funcional.ImportarUnidadesFuncionales 
-     @RutaArchivo='C:\_temp\consorcios\Inquilino-propietarios-UF.csv';
+     @RutaArchivo = @BasePath + 'Inquilino-propietarios-UF.csv';
 PRINT '';
 
 -- 7. Personas
 PRINT '7. Importando Inquilinos y Propietarios...';
 EXEC persona.ImportarInquilinosPropietarios 
-    @RutaArchivo='C:\_temp\consorcios\Inquilino-propietarios-datos.csv';
+    @RutaArchivo = @BasePath + 'Inquilino-propietarios-datos.csv';
 PRINT '';
 
 -- 8. Pagos
@@ -67,11 +69,12 @@ END
 GO
 
 EXEC banco.ImportarYConciliarPagos
-    @RutaArchivo='C:\_temp\consorcios\pagos_consorcios.csv',
+    @RutaArchivo = @BasePath + 'pagos_consorcios.csv',
     @IdCuentaDestino = 1;
 PRINT '';
 
 PRINT '=== FIN DE IMPORTACIONES ===';
+GO
 
 /*
 select * from administracion.administracion

@@ -101,3 +101,5 @@ select * from unidad_funcional.uf_cuenta
 select * from unidad_funcional.uf_persona_vinculo
 select * from unidad_funcional.unidad_funcional
 */
+
+

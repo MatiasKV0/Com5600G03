@@ -1,6 +1,6 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador
+Trabajo Práctico Integrador - ENTREGA 5
 Comisión: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
@@ -14,14 +14,8 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
 */
 
-
-
 USE Com5600G03;
 GO
-
-
-
-
 
 -- IMPORTAR TABLA CONSORCIOS DE CSV. Originalmente estos datos se encuentran en una tabla excel, se pide que exporte la hoja como csv para poder realizar la importacion
 
@@ -31,10 +25,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-
-
-
-    -- Tabla temporal con la estructura EXACTA del CSV
     CREATE TABLE #Consorcios (
         consorcioId VARCHAR(100), 
         nombreConsorcio VARCHAR(200),
@@ -43,9 +33,6 @@ BEGIN
         m2total NUMERIC(12,2)
     );
 
-
-
-	----bulk insert en la tabla temporal----
     DECLARE @SQL NVARCHAR(MAX) = '
         BULK INSERT #Consorcios
         FROM ''' + @RutaArchivo + '''
@@ -135,18 +122,3 @@ BEGIN
     DROP TABLE #Consorcios;
 END;
 GO
-
-EXEC administracion.ImportarConsorcios 
-    @RutaArchivo = 'D:\TP_SQL\consorcios\datos varios(Consorcios).csv';
-GO
-
-select administracion_id,consorcio_id,nombre,domicilio,superficie_total_m2,fecha_alta from administracion.consorcio
-GO
-select * from administracion.cuenta_bancaria
-select * from administracion.consorcio_cuenta_bancaria
-
-
---delete from administracion.cuenta_bancaria
---delete from administracion.consorcio_cuenta_bancaria
---delete from administracion.consorcio
---delete from administracion.administracion

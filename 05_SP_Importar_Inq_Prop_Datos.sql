@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador - ENTREGA 5
-Comisión: 5600
+Trabajo Prï¿½ctico Integrador - ENTREGA 5
+Comisiï¿½n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -60,16 +60,20 @@ BEGIN
     ------------------------------------------------------------
     INSERT INTO persona.persona (nombre_completo, tipo_doc, nro_doc)
     SELECT
-        RTRIM(LTRIM(nombre)) + ' ' + RTRIM(LTRIM(apellido)) AS nombre_completo,
+        MAX(TRIM(ISNULL(nombre, '') + ' ' + ISNULL(apellido, ''))) AS nombre_completo,
         'DNI',
         dni
     FROM #InquilinosPropietarios i
-    WHERE NOT EXISTS (
-        SELECT 1 FROM persona.persona p WHERE p.nro_doc = i.dni
-    );
+    WHERE 
+        NOT EXISTS (
+            SELECT 1 FROM persona.persona p WHERE p.nro_doc = i.dni
+        )
+        AND i.dni IS NOT NULL                  
+        AND LTRIM(RTRIM(i.dni)) <> ''     
+    GROUP BY dni;
 
     ------------------------------------------------------------
-    -- Insertar contactos (email y teléfono)
+    -- Insertar contactos (email y telefono)
     ------------------------------------------------------------
     INSERT INTO persona.persona_contacto (persona_id, tipo, valor, es_preferido)
     SELECT 
@@ -96,11 +100,26 @@ BEGIN
         SELECT 1 FROM persona.persona_contacto c 
         WHERE c.persona_id = p.persona_id AND c.valor = i.telefono_contacto
     );
+    
+    ------------------------------------------------------------
+    -- Insertar cuentas bancarias (si tienen CBU)
+    ------------------------------------------------------------
+    INSERT INTO administracion.cuenta_bancaria (banco, alias, cbu_cvu)
+    SELECT 
+        'Desconocido',
+        NULL,
+        i.cbu_cvu
+    FROM #InquilinosPropietarios i
+    WHERE i.cbu_cvu IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1 FROM administracion.cuenta_bancaria c 
+        WHERE c.cbu_cvu = i.cbu_cvu
+    );
 
     ------------------------------------------------------------
-    -- Insertar vínculos con unidad funcional (rol)
+    -- Insertar vinculos con unidad funcional (rol)
     ------------------------------------------------------------
-    INSERT INTO persona.uf_persona_vinculo (uf_id, persona_id, rol, fecha_desde)
+    INSERT INTO unidad_funcional.uf_persona_vinculo (uf_id, persona_id, rol, fecha_desde)
     SELECT
         ufc.uf_id,
         p.persona_id,
@@ -118,41 +137,11 @@ BEGIN
         i.cbu_cvu IS NOT NULL           
         AND ufc.uf_id IS NOT NULL       
         AND NOT EXISTS (               
-            SELECT 1 FROM persona.uf_persona_vinculo v 
+            SELECT 1 FROM unidad_funcional.uf_persona_vinculo v 
             WHERE v.persona_id = p.persona_id 
               AND v.uf_id = ufc.uf_id
               AND v.rol = CASE WHEN i.inquilino = 1 THEN 'Inquilino' ELSE 'Propietario' END
         );
 
-    ------------------------------------------------------------
-    -- Insertar cuentas bancarias (si tienen CBU)
-    ------------------------------------------------------------
-    INSERT INTO administracion.cuenta_bancaria (banco, alias, cbu_cvu)
-    SELECT 
-        'Desconocido',
-        NULL,
-        i.cbu_cvu
-    FROM #InquilinosPropietarios i
-    WHERE i.cbu_cvu IS NOT NULL
-    AND NOT EXISTS (
-        SELECT 1 FROM administracion.cuenta_bancaria c 
-        WHERE c.cbu_cvu = i.cbu_cvu
-    );
-
-    ------------------------------------------------------------
-    -- Mostrar resultados
-    ------------------------------------------------------------
-    SELECT 'Persona' AS tabla, COUNT(*) AS registros FROM persona.persona
-    UNION ALL
-    SELECT 'Contacto', COUNT(*) FROM persona.persona_contacto
-    UNION ALL
-    SELECT 'Vinculo', COUNT(*) FROM persona.uf_persona_vinculo
-    UNION ALL
-    SELECT 'Cuenta bancaria', COUNT(*) FROM administracion.cuenta_bancaria;
-
 END;
 GO
-
-EXEC persona.ImportarInquilinosPropietarios 
-    @RutaArchivo='C:\Users\matia\OneDrive\Escritorio\Consorcios\Inquilino-propietarios-datos.csv';
-

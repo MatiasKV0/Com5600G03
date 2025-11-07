@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador - ENTREGA 5
-Comisión: 5600
+Trabajo Prï¿½ctico Integrador - ENTREGA 5
+Comisiï¿½n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -17,15 +17,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03;
 GO
 
-/*
-INSERT INTO administracion.consorcio_cuenta_bancaria (consorcio_id, cuenta_id, es_principal)
-VALUES (1, 1, 1);
-*/
-
-USE Com5600G03;
-GO
-
-CREATE OR ALTER PROCEDURE financiero.ImportarYConciliarPagos
+CREATE OR ALTER PROCEDURE banco.ImportarYConciliarPagos
     @RutaArchivo NVARCHAR(500),
     @IdCuentaDestino INT
 AS
@@ -39,7 +31,7 @@ BEGIN
 
     IF @consorcio_id IS NULL
     BEGIN
-        PRINT 'Error: El ID de cuenta destino ' + CAST(@IdCuentaDestino AS VARCHAR) + ' no se encontró o no está vinculado a un consorcio.';
+        PRINT 'Error: El ID de cuenta destino ' + CAST(@IdCuentaDestino AS VARCHAR) + ' no se encontrï¿½ o no estï¿½ vinculado a un consorcio.';
         PRINT 'Por favor, ejecute el INSERT en [administracion.consorcio_cuenta_bancaria] primero.';
         RETURN -1;
     END;
@@ -96,7 +88,7 @@ BEGIN
         importe NUMERIC(14,2)
     );
 
-    INSERT INTO financiero.banco_movimiento (
+    INSERT INTO banco.banco_movimiento (
         consorcio_id,
         cuenta_id,
         cbu_origen,
@@ -116,19 +108,19 @@ BEGIN
         p.cbu_origen,
         p.fecha_pago,
         p.importe_pago,
-        CASE WHEN p.uf_id IS NOT NULL THEN 'Conciliado' ELSE 'Pendiente' END
+        CASE WHEN p.uf_id IS NOT NULL THEN 'ASOCIADO' ELSE 'PENDIENTE' END
     FROM #PagosProcesados p
     WHERE 
         p.importe_pago IS NOT NULL
         AND NOT EXISTS (
-            SELECT 1 FROM financiero.banco_movimiento bm
+            SELECT 1 FROM banco.banco_movimiento bm
             WHERE bm.cuenta_id = @IdCuentaDestino
               AND bm.cbu_origen = p.cbu_origen
               AND bm.fecha = p.fecha_pago
               AND bm.importe = p.importe_pago
         );
       
-    INSERT INTO financiero.pago (
+    INSERT INTO banco.pago (
         uf_id,
         fecha,
         importe,
@@ -141,7 +133,7 @@ BEGIN
         p.uf_id, 
         p.fecha_pago,
         p.importe_pago,
-        'Transferencia',
+        'ORDINARIO',
         mi.movimiento_id,
         p.motivo_no_vinculado,
         'SP_Importar'
@@ -152,7 +144,7 @@ BEGIN
        AND p.importe_pago = mi.importe
     WHERE
         NOT EXISTS (
-            SELECT 1 FROM financiero.pago fp
+            SELECT 1 FROM banco.pago fp
             WHERE fp.movimiento_id = mi.movimiento_id
         );
       
@@ -160,9 +152,4 @@ BEGIN
     DROP TABLE #PagosProcesados;
 
 END;
-GO
-
-EXEC financiero.ImportarYConciliarPagos
-    @RutaArchivo='C:\Users\matia\OneDrive\Escritorio\Consorcios\pagos_consorcios.csv',
-    @IdCuentaDestino = 1;
 GO

@@ -89,17 +89,13 @@ BEGIN
 
 END;
 GO
---  Reporte con rango de fechas específico de todos los consorcios
-EXEC expensa.Reporte_RecaudacionSemanal
-    @FechaInicio = '2025-01-01',
-    @FechaFin = '2025-11-11';
 
--- Reporte completo: consorcio específico + rango de fechas
+-- Reporte 
 EXEC expensa.Reporte_RecaudacionSemanal
     @FechaInicio = '2025-01-01',
     @FechaFin = '2025-05-05',
     @ConsorcioId = 1;
-
+GO
 	 
 ------------------------------------------------------------------------------------------------
 --REPORTE 2
@@ -167,8 +163,138 @@ EXEC expensa.Reporte_RecaudacionMesDepartamentos
     @ConsorcioId = 2,
     @MesInicio = 1,
     @MesFin = 6;
+GO
 
 ----------------------------------------------------------------------------------
 --REPORTE 3: Presente un cuadro cruzado con la recaudación total desagregada 
 --según su procedencia (ordinario, extraordinario, etc.) según el periodo. 
 ---------------------------------------------------------------------------------
+
+CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionPorTipoPeriodo
+    @Anio INT = NULL,
+    @ConsorcioId INT = NULL,
+    @TipoPago VARCHAR(20) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- CTE para obtener recaudación por tipo y periodo
+    WITH RecaudacionPorTipo AS (
+        SELECT 
+            p.tipo AS TipoPago,
+            CONCAT(YEAR(p.fecha), '-', RIGHT('0' + CAST(MONTH(p.fecha) AS VARCHAR(2)), 2)) AS Periodo,
+            SUM(p.importe) AS TotalRecaudado
+        FROM banco.pago p
+        INNER JOIN unidad_funcional.unidad_funcional uf ON p.uf_id = uf.uf_id
+        WHERE (@Anio IS NULL OR YEAR(p.fecha) = @Anio)
+            AND (@ConsorcioId IS NULL OR uf.consorcio_id = @ConsorcioId)
+            AND (@TipoPago IS NULL OR p.tipo = @TipoPago)
+        GROUP BY p.tipo, YEAR(p.fecha), MONTH(p.fecha)
+    )
+    -- Generar resultado en formato XML
+    SELECT 
+        TipoPago AS [@tipo],
+        Periodo AS [@periodo],
+        TotalRecaudado AS [@total]
+    FROM RecaudacionPorTipo
+    ORDER BY Periodo, TipoPago
+    FOR XML PATH('Recaudacion'), ROOT('Reportes');
+END;
+GO
+-----------------------------------------------------------------------------
+PRINT '-- REPORTE 3: Recaudación por Tipo y Periodo (XML)';
+EXEC expensa.Reporte_RecaudacionPorTipoPeriodo
+    @Anio = 2025,
+    @ConsorcioId = 3,
+    @TipoPago = 'ORDINARIO';   --COLOCAR 'ORDINARIO' O 'EXTRAORDINARIO'
+GO
+
+----------------------------------------------------------------------------------------
+-- REPORTE 4: Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos.  
+-----------------------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE expensa.Reporte_TopMesesGastosIngresos
+    @Anio INT = NULL,
+    @ConsorcioId INT = NULL,
+    @TopN INT = 5
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- CTE para calcular gastos por periodo
+    WITH GastosPorPeriodo AS (
+        SELECT 
+            p.periodo_id,
+            c.nombre AS Consorcio,
+            p.anio,
+            p.mes,
+            CONCAT(p.anio, '-', RIGHT('0' + CAST(p.mes AS VARCHAR(2)), 2)) AS Periodo,
+            SUM(g.importe) AS TotalGastos
+        FROM expensa.periodo p
+        INNER JOIN administracion.consorcio c ON p.consorcio_id = c.consorcio_id
+        LEFT JOIN expensa.gasto g ON p.periodo_id = g.periodo_id
+        WHERE (@Anio IS NULL OR p.anio = @Anio)
+            AND (@ConsorcioId IS NULL OR p.consorcio_id = @ConsorcioId)
+        GROUP BY p.periodo_id, c.nombre, p.anio, p.mes
+    ),
+    -- CTE para calcular ingresos por periodo
+    IngresosPorPeriodo AS (
+        SELECT 
+            p.periodo_id,
+            c.nombre AS Consorcio,
+            p.anio,
+            p.mes,
+            CONCAT(p.anio, '-', RIGHT('0' + CAST(p.mes AS VARCHAR(2)), 2)) AS Periodo,
+            SUM(pg.importe) AS TotalIngresos
+        FROM expensa.periodo p
+        INNER JOIN administracion.consorcio c ON p.consorcio_id = c.consorcio_id
+        LEFT JOIN unidad_funcional.unidad_funcional uf ON c.consorcio_id = uf.consorcio_id
+        LEFT JOIN banco.pago pg ON uf.uf_id = pg.uf_id 
+            AND YEAR(pg.fecha) = p.anio 
+            AND MONTH(pg.fecha) = p.mes
+        WHERE (@Anio IS NULL OR p.anio = @Anio)
+            AND (@ConsorcioId IS NULL OR p.consorcio_id = @ConsorcioId)
+        GROUP BY p.periodo_id, c.nombre, p.anio, p.mes
+    )
+    -- Top 5 mayores gastos
+    SELECT 
+        'MAYORES GASTOS' AS Categoria,
+        Consorcio,
+        Periodo,
+        ISNULL(TotalGastos,0) AS Monto
+    FROM (
+        SELECT 
+            Consorcio,
+            Periodo,
+            TotalGastos,
+            ROW_NUMBER() OVER (ORDER BY TotalGastos DESC) AS Ranking
+        FROM GastosPorPeriodo
+    ) AS TopGastos
+    WHERE Ranking <= @TopN
+
+    UNION ALL
+
+    -- Top 5 mayores ingresos
+    SELECT 
+        'MAYORES INGRESOS' AS Categoria,
+        Consorcio,
+        Periodo,
+        ISNULL(TotalIngresos,0) AS Monto
+    FROM (
+        SELECT 
+            Consorcio,
+            Periodo,
+            TotalIngresos,
+            ROW_NUMBER() OVER (ORDER BY TotalIngresos DESC) AS Ranking
+        FROM IngresosPorPeriodo
+    ) AS TopIngresos
+    WHERE Ranking <= @TopN
+    ORDER BY Categoria, Monto DESC;
+END;
+GO
+-------------------------------------------------------------------------
+PRINT '-- REPORTE 4: Top Meses con Mayores Gastos e Ingresos';
+EXEC expensa.Reporte_TopMesesGastosIngresos
+    @Anio = 2025,
+    @ConsorcioId = 1,
+    @TopN = 5;
+GO

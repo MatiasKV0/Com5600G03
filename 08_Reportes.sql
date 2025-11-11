@@ -25,7 +25,7 @@ GO
 -- Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudación por pagos ordinarios y extraordinarios de cada semana, 
 -- el promedio en el periodo, y el acumulado progresivo.  
 
-CREATE OR ALTER PROCEDURE expensa.Reporte_FlujoCajaSemanal
+CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionSemanal
     @FechaInicio DATE = NULL,
     @FechaFin DATE = NULL,
     @ConsorcioId INT = NULL
@@ -89,13 +89,86 @@ BEGIN
 
 END;
 GO
--- 3. Reporte con rango de fechas específico de todos los consorcios
-EXEC expensa.Reporte_FlujoCajaSemanal 
+--  Reporte con rango de fechas específico de todos los consorcios
+EXEC expensa.Reporte_RecaudacionSemanal
     @FechaInicio = '2025-01-01',
     @FechaFin = '2025-11-11';
 
--- 4. Reporte completo: consorcio específico + rango de fechas
-EXEC expensa.Reporte_FlujoCajaSemanal 
+-- Reporte completo: consorcio específico + rango de fechas
+EXEC expensa.Reporte_RecaudacionSemanal
     @FechaInicio = '2025-01-01',
     @FechaFin = '2025-05-05',
     @ConsorcioId = 1;
+
+	 
+------------------------------------------------------------------------------------------------
+--REPORTE 2
+--Presente el total de recaudación por mes y departamento en formato de tabla cruzada.
+--------------------------------------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionMesDepartamentos
+    @Anio INT = NULL,
+    @ConsorcioId INT = NULL,
+    @MesInicio INT = 1,
+    @MesFin INT = 12
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @MesInicio < 1 OR @MesInicio > 12 OR @MesFin < 1 OR @MesFin > 12 OR @MesInicio > @MesFin
+    BEGIN
+        RAISERROR('Los parámetros de mes deben estar entre 1 y 12, y MesInicio debe ser menor o igual a MesFin', 16, 1);
+        RETURN;
+    END;
+
+    -- CTE para obtener recaudación por mes y departamento
+    WITH RecaudacionBase AS (
+        SELECT 
+            uf.depto AS Departamento,
+            MONTH(p.fecha) AS Mes,
+            SUM(p.importe) AS Total_Recaudado
+        FROM banco.pago p
+        INNER JOIN unidad_funcional.unidad_funcional uf ON p.uf_id = uf.uf_id
+        WHERE YEAR(p.fecha) = @Anio
+            AND MONTH(p.fecha) BETWEEN @MesInicio AND @MesFin
+            AND (@ConsorcioId IS NULL OR uf.consorcio_id = @ConsorcioId)
+            AND uf.depto IS NOT NULL
+        GROUP BY uf.depto, MONTH(p.fecha)
+    )
+    SELECT 
+        Departamento,
+        ISNULL([1],0) AS Enero,
+        ISNULL([2],0) AS Febrero,
+        ISNULL([3],0) AS Marzo,
+        ISNULL([4],0) AS Abril,
+        ISNULL([5],0) AS Mayo,
+        ISNULL([6],0) AS Junio,
+        ISNULL([7],0) AS Julio,
+        ISNULL([8],0) AS Agosto,
+        ISNULL([9],0) AS Septiembre,
+        ISNULL([10],0) AS Octubre,
+        ISNULL([11],0) AS Noviembre,
+        ISNULL([12],0) AS Diciembre,
+       
+        (ISNULL([1], 0) + ISNULL([2], 0) + ISNULL([3], 0) + ISNULL([4], 0) + 
+         ISNULL([5], 0) + ISNULL([6], 0) + ISNULL([7], 0) + ISNULL([8], 0) + 
+         ISNULL([9], 0) + ISNULL([10], 0) + ISNULL([11], 0) + ISNULL([12], 0)) AS Total_anual
+	 FROM RecaudacionBase
+		PIVOT (
+			SUM(Total_Recaudado)
+			FOR Mes IN ([1], [2], [3], [4], [5], [6], [7], [8], [9], [10], [11], [12])
+		) AS Cruzado
+		ORDER BY Departamento;
+	END;
+GO
+
+-- REPORTE 2: Recaudación por Mes y Departamento
+EXEC expensa.Reporte_RecaudacionMesDepartamentos
+    @Anio = 2025,
+    @ConsorcioId = 2,
+    @MesInicio = 1,
+    @MesFin = 6;
+
+----------------------------------------------------------------------------------
+--REPORTE 3: Presente un cuadro cruzado con la recaudación total desagregada 
+--según su procedencia (ordinario, extraordinario, etc.) según el periodo. 
+---------------------------------------------------------------------------------

@@ -33,13 +33,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Si no se especifican fechas, usar últimos 3 meses
-    IF @FechaInicio IS NULL
-        SET @FechaInicio = DATEADD(MONTH, -3, GETDATE());
-    
-    IF @FechaFin IS NULL
-        SET @FechaFin = GETDATE();
-
     -- CTE para calcular pagos por semana
     WITH PagosPorSemana AS (
         SELECT 
@@ -69,11 +62,9 @@ BEGIN
             pagos_ordinarios,
             pagos_extraordinarios,
             total_semana,
-            -- Promedio del período
             AVG(pagos_ordinarios) OVER () AS promedio_ordinarios,
             AVG(pagos_extraordinarios) OVER () AS promedio_extraordinarios,
             AVG(total_semana) OVER () AS promedio_total,
-            -- Acumulado progresivo
             SUM(pagos_ordinarios) OVER (ORDER BY anio, semana ROWS UNBOUNDED PRECEDING) AS acumulado_ordinarios,
             SUM(pagos_extraordinarios) OVER (ORDER BY anio, semana ROWS UNBOUNDED PRECEDING) AS acumulado_extraordinarios,
             SUM(total_semana) OVER (ORDER BY anio, semana ROWS UNBOUNDED PRECEDING) AS acumulado_total
@@ -84,28 +75,20 @@ BEGIN
         semana AS Semana,
         CONVERT(VARCHAR(10), inicio_semana, 103) AS Inicio_Semana,
         CONVERT(VARCHAR(10), fin_semana, 103) AS Fin_Semana,
-        
-        -- Recaudación de la semana
-        FORMAT(pagos_ordinarios, 'N2') AS Pagos_Ordinarios,
-        FORMAT(pagos_extraordinarios, 'N2') AS Pagos_Extraordinarios,
-        FORMAT(total_semana, 'N2') AS Total_Semana,
-        
-        -- Promedios del período
-        FORMAT(promedio_ordinarios, 'N2') AS Promedio_Ordinarios_Periodo,
-        FORMAT(promedio_extraordinarios, 'N2') AS Promedio_Extraordinarios_Periodo,
-        FORMAT(promedio_total, 'N2') AS Promedio_Total_Periodo,
-        
-        -- Acumulados progresivos
-        FORMAT(acumulado_ordinarios, 'N2') AS Acumulado_Ordinarios,
-        FORMAT(acumulado_extraordinarios, 'N2') AS Acumulado_Extraordinarios,
-        FORMAT(acumulado_total, 'N2') AS Acumulado_Total
-        
+		pagos_ordinarios, 
+		pagos_extraordinarios, 
+		total_semana, 
+		promedio_ordinarios, 
+		promedio_extraordinarios, 
+		promedio_total, 
+		acumulado_ordinarios, 
+		acumulado_extraordinarios, 
+		acumulado_total
     FROM PromediosYAcumulados
     ORDER BY anio, semana;
 
 END;
 GO
-
 -- 3. Reporte con rango de fechas específico de todos los consorcios
 EXEC expensa.Reporte_FlujoCajaSemanal 
     @FechaInicio = '2025-01-01',

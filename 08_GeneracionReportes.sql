@@ -90,12 +90,7 @@ BEGIN
 END;
 GO
 
--- Reporte 
-EXEC expensa.Reporte_RecaudacionSemanal
-    @FechaInicio = '2025-01-01',
-    @FechaFin = '2025-05-05',
-    @ConsorcioId = 1;
-GO
+
 	 
 ------------------------------------------------------------------------------------------------
 --REPORTE 2
@@ -157,13 +152,7 @@ BEGIN
 	END;
 GO
 
--- REPORTE 2: Recaudación por Mes y Departamento
-EXEC expensa.Reporte_RecaudacionMesDepartamentos
-    @Anio = 2025,
-    @ConsorcioId = 2,
-    @MesInicio = 1,
-    @MesFin = 6;
-GO
+
 
 ----------------------------------------------------------------------------------
 --REPORTE 3: Presente un cuadro cruzado con la recaudación total desagregada 
@@ -201,13 +190,7 @@ BEGIN
     FOR XML PATH('Recaudacion'), ROOT('Reportes');
 END;
 GO
------------------------------------------------------------------------------
-PRINT '-- REPORTE 3: Recaudación por Tipo y Periodo (XML)';
-EXEC expensa.Reporte_RecaudacionPorTipoPeriodo
-    @Anio = 2025,
-    @ConsorcioId = 3,
-    @TipoPago = 'ORDINARIO';   --COLOCAR 'ORDINARIO' O 'EXTRAORDINARIO'
-GO
+
 
 ----------------------------------------------------------------------------------------
 -- REPORTE 4: Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos.  
@@ -292,9 +275,3 @@ BEGIN
 END;
 GO
 -------------------------------------------------------------------------
-PRINT '-- REPORTE 4: Top Meses con Mayores Gastos e Ingresos';
-EXEC expensa.Reporte_TopMesesGastosIngresos
-    @Anio = 2025,
-    @ConsorcioId = 1,
-    @TopN = 5;
-GO

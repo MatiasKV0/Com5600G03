@@ -1,4 +1,22 @@
-:setvar BasePath "C:\_temp\"  --Modo SQLCMD
+/*
+------------------------------------------------------------
+Trabajo Práctico Integrador - ENTREGA 5
+Comisión: 5600
+Grupo: 03
+Materia: Bases de Datos Aplicada
+Integrantes: 
+Apellido y Nombre             - Github          - DNI
+Villan Matias Nicolas         - MatiasKV0       - 46117338
+Lucas Tadeo Messina           - TotoMessina     - 44552900
+Oliveti Lautaro Nahuel        - lautioliveti    - 43863497
+Mamani Estrada Lucas Gabriel  - lucasGME        - 43624305
+Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
+------------------------------------------------------------
+*/
+
+--Ejecutar todas los SP juntos incluyendo la seleccion del setvar
+
+:setvar BasePath "C:\_temp\"  -- Para hacer uso de esto debemos ir arriba a la derecha a Query->Modo SQLCMD
 
 USE Com5600G03;
 GO

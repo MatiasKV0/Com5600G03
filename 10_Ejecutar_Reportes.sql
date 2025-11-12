@@ -55,3 +55,9 @@ GO
 EXEC expensa.Reporte_Top3Morosos
 	@ConsorcioId = 1
 GO
+
+-- REPORTE 6
+EXEC expensa.Reporte_FechasPagosUF
+    @ConsorcioId = 1,
+    @UFCodigo = 1
+GO

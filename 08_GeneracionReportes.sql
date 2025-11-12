@@ -331,3 +331,49 @@ GO
 
 exec expensa.Reporte_Top3Morosos
  @ConsorcioId = 1
+
+
+ ---------------------------------------------------------
+ --REPORTE 6
+ ---------------------------------------------------------
+ /*Muestre las fechas de pagos de expensas ordinarias de cada UF y la cantidad de días que
+ pasan entre un pago y el siguiente, para el conjunto examinado.*/
+
+
+CREATE OR ALTER PROCEDURE expensa.Reporte_FechasPagosUF
+    @ConsorcioId INT,
+    @UFCodigo INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    WITH PagosOrdenados AS (
+        SELECT 
+            p.pago_id,
+            p.fecha AS FechaPago,
+            LAG(p.fecha) OVER (ORDER BY p.fecha) AS FechaPagoAnterior,
+            p.tipo
+        FROM banco.pago p
+        INNER JOIN unidad_funcional.unidad_funcional uf 
+            ON p.uf_id = uf.uf_id
+        WHERE uf.consorcio_id = @ConsorcioId
+          AND uf.codigo = @UFCodigo
+		  AND p.tipo = 'ORDINARIO'
+    )
+    SELECT 
+        p.tipo AS [@tipo_pago],
+        CONVERT(VARCHAR(10), FechaPago, 103) AS [@fecha_pago],
+        CASE 
+            WHEN p.FechaPagoAnterior IS NULL THEN 'Primer pago'
+            ELSE CONVERT(VARCHAR(10), p.FechaPagoAnterior, 103)
+        END AS [@fecha_pago_anterior],
+        CASE 
+            WHEN p.FechaPagoAnterior IS NULL THEN NULL
+            ELSE DATEDIFF(DAY, p.FechaPagoAnterior, p.FechaPago)
+        END AS [@dias_desde_ultimo_pago]
+    FROM PagosOrdenados p
+    ORDER BY p.FechaPago
+    FOR XML PATH('Pago'), ROOT('Reporte_Pagos');
+END;
+GO
+

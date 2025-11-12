@@ -123,3 +123,5 @@ IF NOT EXISTS (
         WHERE es_preferido = 1;
     END;
 	GO
+
+

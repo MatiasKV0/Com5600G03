@@ -1,6 +1,6 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador - ENTREGA 5
+Trabajo Práctico Integrador - ENTREGA 6
 Comisión: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
@@ -60,4 +60,13 @@ GO
 EXEC expensa.Reporte_FechasPagosUF
     @ConsorcioId = 1,
     @UFCodigo = 1
+GO
+
+-- REPORTE 7 
+EXEC administracion.ActualizarCotizacionDolarOficial;
+GO
+EXEC expensa.Reporte7_DeudaPeriodo_ARS_USD
+    @ConsorcioId = 1,
+    @Anio = 2025,
+    @Mes = 10;
 GO

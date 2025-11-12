@@ -1,6 +1,6 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador - ENTREGA 5
+Trabajo Práctico Integrador - ENTREGA 6
 Comisión: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada

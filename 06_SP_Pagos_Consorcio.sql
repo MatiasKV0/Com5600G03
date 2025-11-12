@@ -191,7 +191,7 @@ BEGIN
                 AND MONTH(p.fecha) = per.mes
         ), 0) AS pagos_recibidos,
         
-        -- Deuda anterior simulada (30% de UFs con deuda) para poder porbar los reportes
+        -- Deuda anterior simulada (30% de las unidades funcionales con deuda) para poder probar los reportes
         CASE 
             WHEN uf.uf_id % 3 = 0 THEN ROUND(50000 + (uf.uf_id * 1234.56), 2)
             WHEN uf.uf_id % 5 = 0 THEN ROUND(30000 + (uf.uf_id * 789.12), 2)
@@ -217,7 +217,7 @@ BEGIN
           AND tg.nombre = 'GASTOS ORDINARIOS'
          ) AS expensas_ordinarias,
         
-        -- Expensas extraordinarias (proporción según %)
+        -- Expensas extraordinarias
 		(
           SELECT SUM(g.importe)
           FROM expensa.gasto g
@@ -227,7 +227,7 @@ BEGIN
             AND tg.nombre = 'GASTOS EXTRAORDINARIOS'
         ) AS expensas_extraordinarias,
         
-        -- Total a pagar (suma de todo)
+        -- Total a pagar
         ROUND(
             -- Deuda anterior
             CASE 

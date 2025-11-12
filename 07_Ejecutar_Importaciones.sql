@@ -91,6 +91,10 @@ EXEC banco.ImportarYConciliarPagos
     @IdCuentaDestino = 1;
 PRINT '';
 
+-- 9. LLENAR Y SIMULAR EXPENSAS
+EXEC expensa.LlenarExpensas
+PRINT '';
+
 PRINT '=== FIN DE IMPORTACIONES ===';
 GO
 
@@ -109,6 +113,9 @@ select * from expensa.sub_tipo_gasto
 select * from expensa.tipo_gasto
 select * from expensa.periodo
 select * from expensa.proveedor
+select * from expensa.expensa_uf
+select * from expensa.expensa_uf_detalle
+select * from expensa.expensa_uf_interes
 
 select * from persona.persona
 select * from persona.persona_contacto

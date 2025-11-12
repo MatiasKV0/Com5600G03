@@ -153,3 +153,158 @@ BEGIN
 
 END;
 GO
+
+-----------------------------------------------------------------------
+----LLENAR EXPENSAS Y SIMULAR DEUDA
+----------------------------------------------------------------------
+CREATE OR ALTER PROCEDURE expensa.LlenarExpensas
+AS
+BEGIN
+    SET NOCOUNT ON;
+    
+    INSERT INTO expensa.expensa_uf (
+        periodo_id,
+        uf_id,
+        porcentaje,
+        saldo_anterior_abonado,
+        pagos_recibidos,
+        deuda_anterior,
+        interes_mora,
+        expensas_ordinarias,
+        expensas_extraordinarias,
+        total_a_pagar,
+        created_at,
+        created_by
+    )
+    SELECT 
+        per.periodo_id,
+        uf.uf_id,
+        uf.porcentaje,
+        0 AS saldo_anterior_abonado,
+        
+        -- Pagos recibidos en ese mes (de la tabla banco.pago)
+        ISNULL((
+            SELECT SUM(p.importe)
+            FROM banco.pago p
+            WHERE p.uf_id = uf.uf_id
+                AND YEAR(p.fecha) = per.anio
+                AND MONTH(p.fecha) = per.mes
+        ), 0) AS pagos_recibidos,
+        
+        -- Deuda anterior simulada (30% de las unidades funcionales con deuda) para poder probar los reportes
+        CASE 
+            WHEN uf.uf_id % 3 = 0 THEN ROUND(50000 + (uf.uf_id * 1234.56), 2)
+            WHEN uf.uf_id % 5 = 0 THEN ROUND(30000 + (uf.uf_id * 789.12), 2)
+            ELSE 0
+        END AS deuda_anterior,
+        
+        -- Interes de mora (2% entre vtos, 5% post 2do vto)
+        CASE 
+            WHEN uf.uf_id % 3 = 0 THEN 
+                ROUND((50000 + (uf.uf_id * 1234.56)) * per.interes_post_2do_pct / 100, 2)
+            WHEN uf.uf_id % 5 = 0 THEN 
+                ROUND((30000 + (uf.uf_id * 789.12)) * per.interes_entre_vtos_pct / 100, 2)
+            ELSE 0
+        END AS interes_mora,
+        
+        -- Expensas ordinarias 
+        (
+		SELECT SUM(g.importe)
+        FROM expensa.gasto g
+        INNER JOIN expensa.tipo_gasto tg ON g.tipo_id = tg.tipo_id
+        WHERE g.periodo_id = per.periodo_id
+          AND g.consorcio_id = uf.consorcio_id
+          AND tg.nombre = 'GASTOS ORDINARIOS'
+         ) AS expensas_ordinarias,
+        
+        -- Expensas extraordinarias
+		(
+          SELECT SUM(g.importe)
+          FROM expensa.gasto g
+          INNER JOIN expensa.tipo_gasto tg ON g.tipo_id = tg.tipo_id
+          WHERE g.periodo_id = per.periodo_id
+            AND g.consorcio_id = uf.consorcio_id
+            AND tg.nombre = 'GASTOS EXTRAORDINARIOS'
+        ) AS expensas_extraordinarias,
+        
+        -- Total a pagar
+        ROUND(
+            -- Deuda anterior
+            CASE 
+                WHEN uf.uf_id % 3 = 0 THEN (50000 + (uf.uf_id * 1234.56))
+                WHEN uf.uf_id % 5 = 0 THEN (30000 + (uf.uf_id * 789.12))
+                ELSE 0
+            END +
+            -- Interes mora
+            CASE 
+                WHEN uf.uf_id % 3 = 0 THEN ((50000 + (uf.uf_id * 1234.56)) * per.interes_post_2do_pct / 100)
+                WHEN uf.uf_id % 5 = 0 THEN ((30000 + (uf.uf_id * 789.12)) * per.interes_entre_vtos_pct / 100)
+                ELSE 0
+            END +
+            -- Expensas ordinarias
+            (
+                SELECT SUM(g.importe)
+                FROM expensa.gasto g
+                INNER JOIN expensa.tipo_gasto tg ON g.tipo_id = tg.tipo_id
+                WHERE g.periodo_id = per.periodo_id
+                    AND g.consorcio_id = uf.consorcio_id
+                    AND tg.nombre = 'GASTOS ORDINARIOS'
+            ) +
+            -- Expensas extraordinarias
+            (
+                SELECT SUM(g.importe)
+                FROM expensa.gasto g
+                INNER JOIN expensa.tipo_gasto tg ON g.tipo_id = tg.tipo_id
+                WHERE g.periodo_id = per.periodo_id
+                    AND g.consorcio_id = uf.consorcio_id
+                    AND tg.nombre = 'GASTOS EXTRAORDINARIOS'
+            )
+        , 2) AS total_a_pagar,
+        
+        GETDATE(),
+        'SP-LLENAR_EXPENSAS'
+
+    FROM unidad_funcional.unidad_funcional uf
+    CROSS JOIN expensa.periodo per
+    WHERE uf.consorcio_id = per.consorcio_id
+        AND EXISTS (
+            SELECT 1 FROM expensa.gasto g 
+            WHERE g.periodo_id = per.periodo_id
+        );
+    
+    -- Generar detalles de expensas
+    INSERT INTO expensa.expensa_uf_detalle (
+        expensa_uf_id,
+        gasto_id,
+        concepto,
+        importe
+    )
+    SELECT 
+        eu.expensa_uf_id,
+        g.gasto_id,
+        sg.nombre AS concepto,
+        g.importe
+    FROM expensa.expensa_uf eu
+    INNER JOIN unidad_funcional.unidad_funcional uf ON eu.uf_id = uf.uf_id
+    INNER JOIN expensa.gasto g ON g.periodo_id = eu.periodo_id 
+        AND g.consorcio_id = uf.consorcio_id
+    INNER JOIN expensa.sub_tipo_gasto sg ON g.sub_id = sg.sub_id;
+    
+    -- Generar intereses
+
+    INSERT INTO expensa.expensa_uf_interes (
+        expensa_uf_id,
+        tipo,
+        porcentaje,
+        importe
+    )
+    SELECT 
+        eu.expensa_uf_id,
+        CASE WHEN eu.uf_id % 3 = 0 THEN 'POST_2DO' ELSE 'ENTRE_VTOS' END AS tipo,
+        CASE WHEN eu.uf_id % 3 = 0 THEN 5.000 ELSE 2.000 END AS porcentaje,
+        eu.interes_mora
+    FROM expensa.expensa_uf eu
+    WHERE eu.interes_mora > 0;
+
+END;
+GO

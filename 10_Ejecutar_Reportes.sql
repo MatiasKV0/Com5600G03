@@ -51,3 +51,7 @@ EXEC expensa.Reporte_TopMesesGastosIngresos
     @TopN = 5;
 GO
 
+-- REPORTE 5
+EXEC expensa.Reporte_Top3Morosos
+	@ConsorcioId = 1
+GO

@@ -275,3 +275,59 @@ BEGIN
 END;
 GO
 -------------------------------------------------------------------------
+-----------------------------REPORTE 5-----------------------------------
+
+--Obtenga los 3 (tres) propietarios con mayor morosidad--
+
+CREATE OR ALTER PROCEDURE expensa.Reporte_Top3Morosos
+	@ConsorcioId INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+
+	WITH DeudaPorUF AS (
+        SELECT 
+            uf.uf_id,
+            uf.codigo AS Unidad_Funcional,
+            SUM(eu.deuda_anterior + eu.interes_mora) AS DeudaTotal
+        FROM expensa.expensa_uf eu
+        JOIN expensa.periodo per ON eu.periodo_id = per.periodo_id
+        JOIN unidad_funcional.unidad_funcional uf ON eu.uf_id = uf.uf_id
+        WHERE uf.consorcio_id = @ConsorcioId
+            AND (eu.deuda_anterior > 0 OR eu.interes_mora > 0)
+        GROUP BY uf.uf_id, uf.codigo
+    ),
+    ContactosPreferidos AS (
+        SELECT 
+            pc.persona_id,
+            STRING_AGG(
+                CASE pc.tipo
+                    WHEN 'email' THEN 'Email: ' + pc.valor
+                    WHEN 'telefono' THEN 'Tel: ' + pc.valor
+                END,
+                ', '
+            ) AS Contactos
+        FROM persona.persona_contacto pc
+        WHERE pc.es_preferido = 1
+        GROUP BY pc.persona_id
+    )
+    SELECT TOP 3
+        d.Unidad_Funcional,
+        p.nombre_completo AS Propietario,
+        p.tipo_doc AS TipoDocumento,
+        p.nro_doc AS NroDocumento,
+        p.direccion AS Direccion,
+        cp.Contactos,
+        d.DeudaTotal
+
+    FROM DeudaPorUF d
+	JOIN unidad_funcional.uf_persona_vinculo upv 
+        ON d.uf_id = upv.uf_id AND upv.rol = 'Propietario' AND upv.fecha_hasta IS NULL
+    JOIN persona.persona p ON upv.persona_id = p.persona_id
+    LEFT JOIN ContactosPreferidos cp ON p.persona_id = cp.persona_id
+    ORDER BY d.DeudaTotal DESC;
+END;
+GO
+
+exec expensa.Reporte_Top3Morosos
+ @ConsorcioId = 1

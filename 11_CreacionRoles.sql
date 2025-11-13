@@ -188,13 +188,6 @@ GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Sistemas];
 GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Sistemas];
 GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Sistemas];
 
--- Permisos para ver metadatos del sistema
-GRANT VIEW DEFINITION ON SCHEMA::administracion TO [Sistemas];
-GRANT VIEW DEFINITION ON SCHEMA::unidad_funcional TO [Sistemas];
-GRANT VIEW DEFINITION ON SCHEMA::expensa TO [Sistemas];
-GRANT VIEW DEFINITION ON SCHEMA::persona TO [Sistemas];
-GRANT VIEW DEFINITION ON SCHEMA::banco TO [Sistemas];
-
 -- DENEGAR explícitamente cualquier modificación
 DENY INSERT, UPDATE, DELETE ON SCHEMA::administracion TO [Sistemas];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Sistemas];

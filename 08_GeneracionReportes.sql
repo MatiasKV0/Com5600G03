@@ -378,22 +378,24 @@ BEGIN
 END;
 GO
 
+-----------------------------------------------------------
+-- Creareamos un reporte 7 que convierte la deuda anterior y total a USD
 ------------------------------------------------------------
--- IMPLEMENTACIÓN DE API 
--- Esta sección habilita el servidor, crea la tabla de 
--- historial y el SP que consume la API de dolarapi.com
-------------------------------------------------------------
-
-sp_configure 'show advanced options', 1;
+EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
 GO
-sp_configure 'Ole Automation Procedures', 1;
+EXEC sp_configure 'Ole Automation Procedures', 1;
 RECONFIGURE;
 GO
+------------------------------------------------------------
 
--- 2. Crear tabla de historial de cotizaciones
-
-IF NOT EXISTS (SELECT 1 FROM sys.objects o JOIN sys.schemas s ON o.schema_id = s.schema_id WHERE o.name = 'cotizacion_dolar' AND s.name = 'administracion' AND o.type = 'U')
+IF NOT EXISTS (
+    SELECT 1 FROM sys.objects o 
+    JOIN sys.schemas s ON o.schema_id = s.schema_id 
+    WHERE o.name = 'cotizacion_dolar' 
+    AND s.name = 'administracion' 
+    AND o.type = 'U'
+)
 BEGIN
     CREATE TABLE administracion.cotizacion_dolar (
         id INT IDENTITY(1,1) PRIMARY KEY,
@@ -405,134 +407,224 @@ BEGIN
         fecha_actualizacion DATETIME2 NOT NULL,
         fecha_registro_local DATETIME DEFAULT GETDATE()
     );
+    PRINT 'Tabla cotizacion_dolar creada';
+END
+ELSE
+BEGIN
+    PRINT 'Tabla cotizacion_dolar ya existe';
 END
 GO
 
---insertar valor de prueba
-INSERT INTO administracion.cotizacion_dolar 
-    (moneda, casa, nombre, compra, venta, fecha_actualizacion)
-VALUES 
-    ('USD', 'oficial', 'Oficial', 1385.00, 1435.00, '2025-11-12T17:01:00.000Z');
-GO
-
--- 3. Crear SP para consumir la API
-GO
+------------------------------------------------------------
+-- PASO 3: SP para consumir API (MEJORADO con mejor manejo de errores)
+------------------------------------------------------------
 CREATE OR ALTER PROCEDURE administracion.ActualizarCotizacionDolarOficial
 AS
 BEGIN
     SET NOCOUNT ON;
-
+    
     DECLARE @obj INT;
-    DECLARE @url VARCHAR(255);
+    DECLARE @url VARCHAR(255) = 'https://dolarapi.com/v1/dolares/oficial';
     DECLARE @jsonResponse NVARCHAR(MAX);
     DECLARE @hr INT;
-
-    SET @url = 'https://dolarapi.com/v1/dolares/oficial';
+    DECLARE @status INT;
+    DECLARE @errorMsg NVARCHAR(4000);
 
     BEGIN TRY
+        -- Crear objeto HTTP
         EXEC @hr = sp_OACreate 'MSXML2.ServerXMLHTTP.6.0', @obj OUT;
-        IF @hr <> 0 BEGIN RAISERROR('Error al crear objeto HTTP', 16, 1); RETURN; END
+        IF @hr <> 0 
+        BEGIN
+            RAISERROR('Error al crear objeto HTTP. Verifique que Ole Automation esté habilitado.', 16, 1);
+            RETURN -1;
+        END
 
+        -- Abrir conexión
         EXEC @hr = sp_OAMethod @obj, 'open', NULL, 'GET', @url, 'false';
-        IF @hr <> 0 BEGIN RAISERROR('Error en .open', 16, 1); RETURN; END
+        IF @hr <> 0 
+        BEGIN
+            EXEC sp_OADestroy @obj;
+            RAISERROR('Error al abrir conexión HTTP', 16, 1);
+            RETURN -1;
+        END
 
+        -- Configurar timeout
+        EXEC @hr = sp_OAMethod @obj, 'setTimeouts', NULL, 5000, 5000, 10000, 10000;
+
+        -- Enviar request
         EXEC @hr = sp_OAMethod @obj, 'send';
-        IF @hr <> 0 BEGIN RAISERROR('Error en .send', 16, 1); RETURN; END
+        IF @hr <> 0 
+        BEGIN
+            EXEC sp_OADestroy @obj;
+            RAISERROR('Error al enviar request HTTP', 16, 1);
+            RETURN -1;
+        END
 
+        -- Verificar status
+        EXEC @hr = sp_OAGetProperty @obj, 'status', @status OUT;
+        IF @status <> 200
+        BEGIN
+            EXEC sp_OADestroy @obj;
+            SET @errorMsg = 'La API retornó status: ' + CAST(@status AS VARCHAR(10));
+            RAISERROR(@errorMsg, 16, 1);
+            RETURN -1;
+        END
+
+        -- Obtener respuesta
         EXEC @hr = sp_OAGetProperty @obj, 'responseText', @jsonResponse OUT;
-        IF @hr <> 0 BEGIN RAISERROR('Error al obtener respuesta', 16, 1); RETURN; END
+        IF @hr <> 0 OR @jsonResponse IS NULL
+        BEGIN
+            EXEC sp_OADestroy @obj;
+            RAISERROR('Error al obtener respuesta de la API', 16, 1);
+            RETURN -1;
+        END
 
-        EXEC @hr = sp_OADestroy @obj;
+        -- Destruir objeto
+        EXEC sp_OADestroy @obj;
 
+        -- Parsear JSON e insertar
         INSERT INTO administracion.cotizacion_dolar (
             moneda, casa, nombre, compra, venta, fecha_actualizacion
         )
         SELECT
             moneda, casa, nombre, compra, venta, fechaActualizacion
-        FROM 
-            OPENJSON(@jsonResponse)
-            WITH (
-                moneda VARCHAR(3) '$.moneda',
-                casa VARCHAR(50) '$.casa',
-                nombre VARCHAR(50) '$.nombre',
-                compra DECIMAL(18, 2) '$.compra',
-                venta DECIMAL(18, 2) '$.venta',
-                fechaActualizacion DATETIME2 '$.fechaActualizacion'
-            ) AS jsonValues
+        FROM OPENJSON(@jsonResponse)
+        WITH (
+            moneda VARCHAR(3) '$.moneda',
+            casa VARCHAR(50) '$.casa',
+            nombre VARCHAR(50) '$.nombre',
+            compra DECIMAL(18, 2) '$.compra',
+            venta DECIMAL(18, 2) '$.venta',
+            fechaActualizacion DATETIME2 '$.fechaActualizacion'
+        ) AS jsonValues
         WHERE NOT EXISTS (
-            SELECT 1 
-            FROM administracion.cotizacion_dolar 
+            SELECT 1 FROM administracion.cotizacion_dolar 
             WHERE fecha_actualizacion = jsonValues.fechaActualizacion
         );
+
+        PRINT ' Cotización actualizada exitosamente desde la API';
+
+        -- Mostrar última cotización
+        SELECT TOP 1 
+            'Última cotización obtenida:' AS Info,
+            nombre,
+            compra AS Compra_ARS,
+            venta AS Venta_ARS,
+            fecha_actualizacion AS Fecha_API
+        FROM administracion.cotizacion_dolar
+        ORDER BY fecha_actualizacion DESC;
+
+        RETURN 0;
 
     END TRY
     BEGIN CATCH
         IF @obj IS NOT NULL EXEC sp_OADestroy @obj;
-        
-        DECLARE @ErrorMessage NVARCHAR(4000);
-        DECLARE @ErrorLine INT;
-        SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorLine = ERROR_LINE();
-        RAISERROR ('*** ERROR (Línea %d) al llamar a la API: %s ***', 16, 1, @ErrorLine, @ErrorMessage) WITH NOWAIT;
+        SET @errorMsg = ERROR_MESSAGE();
+        RETURN -1;
     END CATCH
 END
 GO
 
-----------------------------------------------------------------------------------------
--- REPORTE 7: Detalle de Morosidad del Período en ARS y USD (con API Dolar)
--- Muestra la deuda de un período específico, convirtiéndola a USD
--- según la última cotización guardada desde la API.
------------------------------------------------------------------------------------------
+------------------------------------------------------------
+--  REPORTE 7 - Deudas anteriores y totales de las UF.
+------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte7_DeudaPeriodo_ARS_USD
-    @ConsorcioId INT,
-    @Anio INT,
-    @Mes INT
+    @ConsorcioId INT = NULL,
+    @Anio INT = NULL,
+    @Mes INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- 1. IMPLEMENTACIÓN DE API
+    -- Validar parámetros
+    IF @ConsorcioId IS NULL OR @Anio IS NULL OR @Mes IS NULL
+    BEGIN
+        PRINT ' Debe proporcionar ConsorcioId, Año y Mes';
+        RETURN -1;
+    END
+
+    -- Obtener cotización (usar la más reciente o valor por defecto)
     DECLARE @CotizacionVenta DECIMAL(18, 2);
-    SELECT TOP 1 @CotizacionVenta = venta
+    DECLARE @FechaCotizacion DATETIME2;
+    
+    SELECT TOP 1 
+        @CotizacionVenta = venta,
+        @FechaCotizacion = fecha_actualizacion
     FROM administracion.cotizacion_dolar
+    WHERE casa = 'oficial'
     ORDER BY fecha_actualizacion DESC;
 
-    SET @CotizacionVenta = ISNULL(NULLIF(@CotizacionVenta, 0), 1500);
-    
-    PRINT 'Usando Tasa de Cambio (1 USD = ' + CAST(@CotizacionVenta AS VARCHAR) + ' ARS)';
+    -- Si no hay cotización, usar valor por defecto
+    IF @CotizacionVenta IS NULL OR @CotizacionVenta = 0
+    BEGIN
+        SET @CotizacionVenta = 1500.00;
+        PRINT ' ADVERTENCIA: No hay cotización de API disponible';
+    END
 
-    -- 2. GENERACIÓN DEL REPORTE
+    -- Generar reporte
     SELECT 
         c.nombre AS Consorcio,
         CONCAT(@Anio, '-', RIGHT('0' + CAST(@Mes AS VARCHAR(2)), 2)) AS Periodo,
-        uf.codigo AS UF,
-        ISNULL(pna.nombre_completo, '(Sin Propietario Asignado)') AS Propietario,
+        uf.codigo AS UnidadFuncional,
+        ISNULL(pna.nombre_completo, 'Desconocido') AS Propietario,
+        
+        -- Deudas en ARS
         ISNULL(SUM(eu.deuda_anterior), 0) AS DeudaAnterior_ARS,
         ISNULL(SUM(eu.interes_mora), 0) AS InteresMora_ARS,
         ISNULL(SUM(eu.deuda_anterior + eu.interes_mora), 0) AS DeudaTotal_ARS,
-        ISNULL(SUM(eu.deuda_anterior + eu.interes_mora), 0) / @CotizacionVenta AS DeudaTotal_USD
+        
+        -- Conversión a USD usando API
+        ROUND(ISNULL(SUM(eu.deuda_anterior), 0) / @CotizacionVenta, 2) AS DeudaAnterior_USD,
+        ROUND(ISNULL(SUM(eu.interes_mora), 0) / @CotizacionVenta, 2) AS InteresMora_USD,
+        ROUND(ISNULL(SUM(eu.deuda_anterior + eu.interes_mora), 0) / @CotizacionVenta, 2) AS DeudaTotal_USD,
+        
+        -- Info de cotización
+        @CotizacionVenta AS TasaCambio_ARS_USD,
+        @FechaCotizacion AS FechaCotizacion
         
     FROM expensa.periodo p
-    JOIN administracion.consorcio c ON p.consorcio_id = c.consorcio_id
-    JOIN expensa.expensa_uf eu ON p.periodo_id = eu.periodo_id
-    JOIN unidad_funcional.unidad_funcional uf ON eu.uf_id = uf.uf_id
-    
+    INNER JOIN administracion.consorcio c 
+        ON p.consorcio_id = c.consorcio_id
+    INNER JOIN expensa.expensa_uf eu 
+        ON p.periodo_id = eu.periodo_id
+    INNER JOIN unidad_funcional.unidad_funcional uf 
+        ON eu.uf_id = uf.uf_id
     LEFT JOIN unidad_funcional.uf_persona_vinculo upv 
-        ON uf.uf_id = upv.uf_id AND upv.rol = 'Propietario' AND upv.fecha_hasta IS NULL
-    LEFT JOIN persona.persona pna ON upv.persona_id = pna.persona_id
+        ON uf.uf_id = upv.uf_id 
+        AND upv.rol = 'PROPIETARIO' 
+        AND upv.fecha_hasta IS NULL
+    LEFT JOIN persona.persona pna 
+        ON upv.persona_id = pna.persona_id
     
-    WHERE 
-        p.consorcio_id = @ConsorcioId
+    WHERE p.consorcio_id = @ConsorcioId
         AND p.anio = @Anio
         AND p.mes = @Mes
         
-    GROUP BY 
-        c.nombre, uf.codigo, pna.nombre_completo
+    GROUP BY c.nombre, uf.codigo, pna.nombre_completo
         
-    HAVING 
-        SUM(eu.deuda_anterior + eu.interes_mora) > 0
+    HAVING SUM(eu.deuda_anterior + eu.interes_mora) > 0
         
-    ORDER BY 
-        DeudaTotal_ARS DESC;
+    ORDER BY DeudaTotal_ARS DESC;
 
 END;
 GO
+
+------------------------------------------------------------
+-- PASO 5: Script de testing
+------------------------------------------------------------
+
+-- Test 1: Actualizar cotización desde API
+PRINT '--- TEST 1: Consumir API de Dólar ---';
+EXEC administracion.ActualizarCotizacionDolarOficial;
+PRINT '';
+
+-- Test 3: Ejecutar reporte con datos del consorcio 1
+PRINT '--- TEST 3: Reporte de Morosidad (Consorcio 1, 2025-10) ---';
+EXEC expensa.Reporte7_DeudaPeriodo_ARS_USD
+    @ConsorcioId = 1,
+    @Anio = 2025,
+    @Mes = 5;
+PRINT '';
+
+
+

@@ -280,12 +280,14 @@ GO
 --Obtenga los 3 (tres) propietarios con mayor morosidad--
 
 CREATE OR ALTER PROCEDURE expensa.Reporte_Top3Morosos
-	@ConsorcioId INT
+    @ConsorcioId INT,
+    @TopN INT,
+    @Rol VARCHAR(50) = 'PROPIETARIO'
 AS
 BEGIN
-	SET NOCOUNT ON;
+    SET NOCOUNT ON;
 
-	WITH DeudaPorUF AS (
+    WITH DeudaPorUF AS (
         SELECT 
             uf.uf_id,
             uf.codigo AS Unidad_Funcional,
@@ -311,7 +313,7 @@ BEGIN
         WHERE pc.es_preferido = 1
         GROUP BY pc.persona_id
     )
-    SELECT TOP 3
+    SELECT TOP (@TopN)
         d.Unidad_Funcional,
         p.nombre_completo AS Propietario,
         p.tipo_doc AS TipoDocumento,
@@ -319,20 +321,14 @@ BEGIN
         p.direccion AS Direccion,
         cp.Contactos,
         d.DeudaTotal
-
     FROM DeudaPorUF d
-	JOIN unidad_funcional.uf_persona_vinculo upv 
-        ON d.uf_id = upv.uf_id AND upv.rol = 'Propietario' AND upv.fecha_hasta IS NULL
+    JOIN unidad_funcional.uf_persona_vinculo upv 
+        ON d.uf_id = upv.uf_id AND upv.rol = @Rol AND upv.fecha_hasta IS NULL
     JOIN persona.persona p ON upv.persona_id = p.persona_id
     LEFT JOIN ContactosPreferidos cp ON p.persona_id = cp.persona_id
     ORDER BY d.DeudaTotal DESC;
 END;
 GO
-
-exec expensa.Reporte_Top3Morosos
- @ConsorcioId = 1
-GO
-
 
  ---------------------------------------------------------
  --REPORTE 6
@@ -343,7 +339,8 @@ GO
 
 CREATE OR ALTER PROCEDURE expensa.Reporte_FechasPagosUF
     @ConsorcioId INT,
-    @UFCodigo INT
+    @UFCodigo INT,
+    @TipoPago VARCHAR(50)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -359,7 +356,7 @@ BEGIN
             ON p.uf_id = uf.uf_id
         WHERE uf.consorcio_id = @ConsorcioId
           AND uf.codigo = @UFCodigo
-		  AND p.tipo = 'ORDINARIO'
+		  AND p.tipo = @TipoPago
     )
     SELECT 
         p.tipo AS [@tipo_pago],

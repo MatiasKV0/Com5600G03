@@ -27,8 +27,6 @@ EXEC expensa.Reporte_RecaudacionSemanal
     @ConsorcioId = 1;
 GO
 
-
-
 --REPORTE 2
 EXEC expensa.Reporte_RecaudacionMesDepartamentos
     @Anio = 2025,
@@ -53,13 +51,16 @@ GO
 
 -- REPORTE 5
 EXEC expensa.Reporte_Top3Morosos
-	@ConsorcioId = 1
+    @ConsorcioId = 1,
+    @TopN = 3,
+    @Rol = 'PROPIETARIO'
 GO
 
 -- REPORTE 6
 EXEC expensa.Reporte_FechasPagosUF
     @ConsorcioId = 1,
-    @UFCodigo = 1
+    @UFCodigo = 1,
+    @TipoPago = 'ORDINARIO'
 GO
 
 -- ACTUALIZAR API DOLAR

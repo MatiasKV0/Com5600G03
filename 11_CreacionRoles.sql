@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Pr醕tico Integrador - ENTREGA 6
-Comisi髇: 5600
+Trabajo Pr谩ctico Integrador - ENTREGA 7
+Comisi贸n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -67,11 +67,11 @@ GRANT SELECT ON SCHEMA::expensa TO [Administrativo General];
 GRANT SELECT ON SCHEMA::persona TO [Administrativo General];
 GRANT SELECT ON SCHEMA::banco TO [Administrativo General];
 
--- Permisos de actualizaci髇 sobre datos de UF
+-- Permisos de actualizaci贸n sobre datos de UF
 GRANT INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Administrativo General];
 GRANT INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Administrativo General];
 
--- Permisos sobre administraci髇 y consorcios
+-- Permisos sobre administraci贸n y consorcios
 GRANT INSERT, UPDATE ON SCHEMA::administracion TO [Administrativo General];
 
 -- Permisos para ejecutar reportes
@@ -82,13 +82,13 @@ GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo Gener
 GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo General];
 GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo General];
 
--- Permisos para procedimientos de gesti髇 de UF
+-- Permisos para procedimientos de gesti贸n de UF
 GRANT EXECUTE ON administracion.ImportarConsorcios TO [Administrativo General];
 GRANT EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo General];
 GRANT EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Administrativo General];
 GRANT EXECUTE ON persona.ImportarInquilinosPropietarios TO [Administrativo General];
 
--- DENEGAR expl韈itamente importaci髇 bancaria
+-- DENEGAR expl铆citamente importaci贸n bancaria
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo General];
 
 PRINT '- Permisos asignados correctamente';
@@ -119,7 +119,7 @@ GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo Bancario];
 -- Permisos para procedimientos bancarios
 GRANT EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Bancario];
 
--- DENEGAR expl韈itamente actualizaci髇 de UF
+-- DENEGAR expl铆citamente actualizaci贸n de UF
 DENY INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Administrativo Bancario];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Administrativo Bancario];
 DENY EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo Bancario];
@@ -139,7 +139,7 @@ GRANT SELECT ON SCHEMA::expensa TO [Administrativo Operativo];
 GRANT SELECT ON SCHEMA::persona TO [Administrativo Operativo];
 GRANT SELECT ON SCHEMA::banco TO [Administrativo Operativo];
 
--- Permisos de actualizaci髇 sobre datos de UF
+-- Permisos de actualizaci贸n sobre datos de UF
 GRANT INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Administrativo Operativo];
 GRANT INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Administrativo Operativo];
 
@@ -163,7 +163,7 @@ GRANT EXECUTE ON administracion.CargarProveedores TO [Administrativo Operativo];
 GRANT EXECUTE ON administracion.ImportarGastos TO [Administrativo Operativo];
 GRANT EXECUTE ON expensa.LlenarExpensas TO [Administrativo Operativo];
 
--- DENEGAR expl韈itamente importaci髇 bancaria
+-- DENEGAR expl铆citamente importaci贸n bancaria
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Operativo];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::banco TO [Administrativo Operativo];
 
@@ -195,14 +195,14 @@ GRANT VIEW DEFINITION ON SCHEMA::expensa TO [Sistemas];
 GRANT VIEW DEFINITION ON SCHEMA::persona TO [Sistemas];
 GRANT VIEW DEFINITION ON SCHEMA::banco TO [Sistemas];
 
--- DENEGAR expl韈itamente cualquier modificaci髇
+-- DENEGAR expl铆citamente cualquier modificaci贸n
 DENY INSERT, UPDATE, DELETE ON SCHEMA::administracion TO [Sistemas];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Sistemas];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::expensa TO [Sistemas];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Sistemas];
 DENY INSERT, UPDATE, DELETE ON SCHEMA::banco TO [Sistemas];
 
--- DENEGAR procedimientos de importaci髇
+-- DENEGAR procedimientos de importaci贸n
 DENY EXECUTE ON administracion.ImportarConsorcios TO [Sistemas];
 DENY EXECUTE ON administracion.ImportarArchivoUF TO [Sistemas];
 DENY EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Sistemas];

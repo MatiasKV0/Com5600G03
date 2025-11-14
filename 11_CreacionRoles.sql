@@ -60,37 +60,19 @@ GO
 -- 2. PERMISOS PARA "ADMINISTRATIVO GENERAL"
 ----------------------------------------------------------------
 
--- Permisos de lectura sobre todos los esquemas
-GRANT SELECT ON SCHEMA::administracion TO [Administrativo General];
-GRANT SELECT ON SCHEMA::unidad_funcional TO [Administrativo General];
-GRANT SELECT ON SCHEMA::expensa TO [Administrativo General];
-GRANT SELECT ON SCHEMA::persona TO [Administrativo General];
-GRANT SELECT ON SCHEMA::banco TO [Administrativo General];
-
--- Permisos de actualización sobre datos de UF
-GRANT INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Administrativo General];
-GRANT INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Administrativo General];
-
--- Permisos sobre administración y consorcios
-GRANT INSERT, UPDATE ON SCHEMA::administracion TO [Administrativo General];
-
--- Permisos para ejecutar reportes
-GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal TO [Administrativo General];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Administrativo General];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Administrativo General];
-GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo General];
-GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo General];
-GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo General];
-GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Administrativo General];
-
--- Permisos para procedimientos de gestión de UF
+-- GRANT permisos correctos
 GRANT EXECUTE ON administracion.ImportarConsorcios TO [Administrativo General];
 GRANT EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo General];
 GRANT EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Administrativo General];
 GRANT EXECUTE ON persona.ImportarInquilinosPropietarios TO [Administrativo General];
+GRANT EXECUTE ON administracion.CrearPeriodos TO [Administrativo General];
 
--- DENEGAR explícitamente importación bancaria
+-- DENY explícito a operaciones bancarias
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo General];
+DENY EXECUTE ON administracion.ImportarGastos TO [Administrativo General];
+DENY EXECUTE ON administracion.CargarProveedores TO [Administrativo General];
+DENY EXECUTE ON administracion.CargarTipoGastos TO [Administrativo General];
+DENY EXECUTE ON expensa.LlenarExpensas TO [Administrativo General];
 
 PRINT '- Permisos asignados correctamente';
 GO
@@ -99,36 +81,19 @@ GO
 -- 3. PERMISOS PARA "ADMINISTRATIVO BANCARIO"
 ----------------------------------------------------------------
 
--- Permisos de lectura sobre todos los esquemas
-GRANT SELECT ON SCHEMA::administracion TO [Administrativo Bancario];
-GRANT SELECT ON SCHEMA::unidad_funcional TO [Administrativo Bancario];
-GRANT SELECT ON SCHEMA::expensa TO [Administrativo Bancario];
-GRANT SELECT ON SCHEMA::persona TO [Administrativo Bancario];
-GRANT SELECT ON SCHEMA::banco TO [Administrativo Bancario];
-
--- Permisos completos sobre esquema banco
-GRANT INSERT, UPDATE, DELETE ON SCHEMA::banco TO [Administrativo Bancario];
-
--- Permisos para ejecutar reportes
-GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal TO [Administrativo Bancario];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Administrativo Bancario];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Administrativo Bancario];
-GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo Bancario];
-GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo Bancario];
-GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo Bancario];
-GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Administrativo Bancario];
-
-
-
--- Permisos para procedimientos bancarios
+-- GRANT permisos correctos
 GRANT EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Bancario];
 
--- DENEGAR explícitamente actualización de UF
-DENY INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Administrativo Bancario];
-DENY INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Administrativo Bancario];
+-- DENY explícito a importaciones que no le corresponden
+DENY EXECUTE ON administracion.ImportarConsorcios TO [Administrativo Bancario];
 DENY EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo Bancario];
 DENY EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Administrativo Bancario];
 DENY EXECUTE ON persona.ImportarInquilinosPropietarios TO [Administrativo Bancario];
+DENY EXECUTE ON administracion.ImportarGastos TO [Administrativo Bancario];
+DENY EXECUTE ON administracion.CargarProveedores TO [Administrativo Bancario];
+DENY EXECUTE ON administracion.CargarTipoGastos TO [Administrativo Bancario];
+DENY EXECUTE ON expensa.LlenarExpensas TO [Administrativo Bancario];
+DENY EXECUTE ON administracion.CrearPeriodos TO [Administrativo Bancario];
 
 PRINT '- Permisos asignados correctamente';
 GO
@@ -136,42 +101,20 @@ GO
 ----------------------------------------------------------------
 -- 4. PERMISOS PARA "ADMINISTRATIVO OPERATIVO"
 ----------------------------------------------------------------
--- Permisos de lectura sobre todos los esquemas
-GRANT SELECT ON SCHEMA::administracion TO [Administrativo Operativo];
-GRANT SELECT ON SCHEMA::unidad_funcional TO [Administrativo Operativo];
-GRANT SELECT ON SCHEMA::expensa TO [Administrativo Operativo];
-GRANT SELECT ON SCHEMA::persona TO [Administrativo Operativo];
-GRANT SELECT ON SCHEMA::banco TO [Administrativo Operativo];
-
--- Permisos de actualización sobre datos de UF
-GRANT INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Administrativo Operativo];
-GRANT INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Administrativo Operativo];
-
--- Permisos sobre expensas y gastos
-GRANT INSERT, UPDATE ON SCHEMA::expensa TO [Administrativo Operativo];
-
--- Permisos para ejecutar reportes
-GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Administrativo Operativo];
-
-
--- Permisos para procedimientos operativos
+-- GRANT permisos correctos
+GRANT EXECUTE ON administracion.ImportarGastos TO [Administrativo Operativo];
+GRANT EXECUTE ON administracion.CargarProveedores TO [Administrativo Operativo];
+GRANT EXECUTE ON administracion.CargarTipoGastos TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.LlenarExpensas TO [Administrativo Operativo];
+GRANT EXECUTE ON administracion.CrearPeriodos TO [Administrativo Operativo];
 GRANT EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo Operativo];
 GRANT EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Administrativo Operativo];
 GRANT EXECUTE ON persona.ImportarInquilinosPropietarios TO [Administrativo Operativo];
-GRANT EXECUTE ON administracion.CargarTipoGastos TO [Administrativo Operativo];
-GRANT EXECUTE ON administracion.CargarProveedores TO [Administrativo Operativo];
-GRANT EXECUTE ON administracion.ImportarGastos TO [Administrativo Operativo];
-GRANT EXECUTE ON expensa.LlenarExpensas TO [Administrativo Operativo];
 
--- DENEGAR explícitamente importación bancaria
+-- DENY explícito a operaciones bancarias y consorcios
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Operativo];
-DENY INSERT, UPDATE, DELETE ON SCHEMA::banco TO [Administrativo Operativo];
+DENY EXECUTE ON administracion.ImportarConsorcios TO [Administrativo Operativo];
+
 
 PRINT '- Permisos asignados correctamente';
 GO
@@ -180,39 +123,95 @@ GO
 -- 5. PERMISOS PARA "SISTEMAS"
 ---------------------------------------------------------------
 -- Permisos de SOLO LECTURA sobre todos los esquemas
-GRANT SELECT ON SCHEMA::administracion TO [Sistemas];
-GRANT SELECT ON SCHEMA::unidad_funcional TO [Sistemas];
-GRANT SELECT ON SCHEMA::expensa TO [Sistemas];
-GRANT SELECT ON SCHEMA::persona TO [Sistemas];
-GRANT SELECT ON SCHEMA::banco TO [Sistemas];
 
--- Permisos para ejecutar reportes
-GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal TO [Sistemas];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Sistemas];
-GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Sistemas];
-GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Sistemas];
-GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Sistemas];
-GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Sistemas];
-GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Sistemas];
-
-
--- DENEGAR explícitamente cualquier modificación
-DENY INSERT, UPDATE, DELETE ON SCHEMA::administracion TO [Sistemas];
-DENY INSERT, UPDATE, DELETE ON SCHEMA::unidad_funcional TO [Sistemas];
-DENY INSERT, UPDATE, DELETE ON SCHEMA::expensa TO [Sistemas];
-DENY INSERT, UPDATE, DELETE ON SCHEMA::persona TO [Sistemas];
-DENY INSERT, UPDATE, DELETE ON SCHEMA::banco TO [Sistemas];
-
--- DENEGAR procedimientos de importación
 DENY EXECUTE ON administracion.ImportarConsorcios TO [Sistemas];
 DENY EXECUTE ON administracion.ImportarArchivoUF TO [Sistemas];
 DENY EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Sistemas];
 DENY EXECUTE ON persona.ImportarInquilinosPropietarios TO [Sistemas];
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Sistemas];
-DENY EXECUTE ON administracion.CargarTipoGastos TO [Sistemas];
-DENY EXECUTE ON administracion.CargarProveedores TO [Sistemas];
 DENY EXECUTE ON administracion.ImportarGastos TO [Sistemas];
+DENY EXECUTE ON administracion.CargarProveedores TO [Sistemas];
+DENY EXECUTE ON administracion.CargarTipoGastos TO [Sistemas];
 DENY EXECUTE ON expensa.LlenarExpensas TO [Sistemas];
-
+DENY EXECUTE ON administracion.CrearPeriodos TO [Sistemas];
 PRINT '- Permisos asignados correctamente';
 GO
+
+
+
+
+--LISTAR TODOS LOS ROLES CREADOS
+
+SELECT 
+    name AS 'Rol',
+    type_desc AS 'Tipo',
+    create_date AS 'Fecha Creación',
+    modify_date AS 'Última Modificación'
+FROM sys.database_principals
+WHERE type = 'R' 
+    AND name IN (
+        'Administrativo General', 
+        'Administrativo Bancario', 
+        'Administrativo Operativo', 
+        'Sistemas'
+    )
+ORDER BY name;
+
+
+
+-- PERMISOS SOBRE STORED PROCEDURES
+
+SELECT 
+    rol.name AS 'Rol',
+    SCHEMA_NAME(obj.schema_id) AS 'Esquema',
+    obj.name AS 'Stored Procedure',
+    perm.permission_name AS 'Permiso',
+    perm.state_desc AS 'Estado'
+FROM sys.database_principals rol
+INNER JOIN sys.database_permissions perm ON rol.principal_id = perm.grantee_principal_id
+INNER JOIN sys.objects obj ON perm.major_id = obj.object_id
+WHERE rol.type = 'R' 
+    AND rol.name IN (
+        'Administrativo General', 
+        'Administrativo Bancario', 
+        'Administrativo Operativo', 
+        'Sistemas'
+    )
+    AND obj.type = 'P' -- Stored Procedure
+    AND perm.class = 1 -- Object
+ORDER BY rol.name, SCHEMA_NAME(obj.schema_id), obj.name;
+
+-- LISTADO DE TODOS LOS SP Y SU ACCESO POR ROL
+
+SELECT 
+    SCHEMA_NAME(p.schema_id) AS 'Esquema',
+    p.name AS 'Stored Procedure',
+    MAX(CASE WHEN rol.name = 'Administrativo General' THEN 
+        CASE WHEN perm.state = 'G' THEN 'GRANT' 
+             WHEN perm.state = 'D' THEN 'DENY' 
+             ELSE '-' END 
+    END) AS 'Adm. General',
+    MAX(CASE WHEN rol.name = 'Administrativo Bancario' THEN 
+        CASE WHEN perm.state = 'G' THEN 'GRANT' 
+             WHEN perm.state = 'D' THEN 'DENY' 
+             ELSE '-' END 
+    END) AS 'Adm. Bancario',
+    MAX(CASE WHEN rol.name = 'Administrativo Operativo' THEN 
+        CASE WHEN perm.state = 'G' THEN 'GRANT' 
+             WHEN perm.state = 'D' THEN 'DENY' 
+             ELSE '-' END 
+    END) AS 'Adm. Operativo',
+    MAX(CASE WHEN rol.name = 'Sistemas' THEN 
+        CASE WHEN perm.state = 'G' THEN 'GRANT' 
+             WHEN perm.state = 'D' THEN 'DENY' 
+             ELSE '-' END 
+    END) AS 'Sistemas'
+FROM sys.objects p
+LEFT JOIN sys.database_permissions perm ON p.object_id = perm.major_id
+    AND perm.permission_name = 'EXECUTE'
+LEFT JOIN sys.database_principals rol ON perm.grantee_principal_id = rol.principal_id
+    AND rol.name IN ('Administrativo General', 'Administrativo Bancario', 'Administrativo Operativo', 'Sistemas')
+WHERE p.type = 'P' -- Stored Procedures
+    AND SCHEMA_NAME(p.schema_id) IN ('administracion', 'banco', 'expensa', 'persona', 'unidad_funcional')
+GROUP BY SCHEMA_NAME(p.schema_id), p.name
+ORDER BY SCHEMA_NAME(p.schema_id), p.name;

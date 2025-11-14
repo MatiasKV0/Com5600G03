@@ -69,7 +69,7 @@ GO
 
 -- REPORTE 7
 EXEC expensa.Reporte7_DeudaPeriodo_ARS_USD
-    @ConsorcioId = 2,
+    @ConsorcioId = 3,
     @Anio = 2025,
     @Mes = 4;
 GO

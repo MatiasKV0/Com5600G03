@@ -444,7 +444,7 @@ BEGIN
         -- 5. Destruir el objeto
         EXEC sp_OADestroy @Object;
 
-        -- 6. PARSEAR EL JSON (¡Esto ya lo conoces!)
+        -- 6. PARSEAR EL JSON
 
         SELECT 
             compra,

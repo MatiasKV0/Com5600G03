@@ -81,6 +81,8 @@ GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Administrativo Ge
 GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo General];
 GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo General];
 GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Administrativo General];
+GRANT EXECUTE ON administracion.ActualizarCotizacionDolarOficial TO [Administrativo General];
 
 -- Permisos para procedimientos de gestión de UF
 GRANT EXECUTE ON administracion.ImportarConsorcios TO [Administrativo General];
@@ -115,6 +117,9 @@ GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Administrativo Ba
 GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo Bancario];
 GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo Bancario];
 GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Administrativo Bancario];
+GRANT EXECUTE ON administracion.ActualizarCotizacionDolarOficial TO [Administrativo Bancario];
+
 
 -- Permisos para procedimientos bancarios
 GRANT EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Bancario];
@@ -153,6 +158,8 @@ GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Administrativo Op
 GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Administrativo Operativo];
 GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Administrativo Operativo];
 GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Administrativo Operativo];
+GRANT EXECUTE ON administracion.ActualizarCotizacionDolarOficial TO [Administrativo Operativo];
 
 -- Permisos para procedimientos operativos
 GRANT EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo Operativo];
@@ -187,6 +194,8 @@ GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo TO [Sistemas];
 GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos TO [Sistemas];
 GRANT EXECUTE ON expensa.Reporte_Top3Morosos TO [Sistemas];
 GRANT EXECUTE ON expensa.Reporte_FechasPagosUF TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD TO [Sistemas];
+GRANT EXECUTE ON administracion.ActualizarCotizacionDolarOficial TO [Sistemas];
 
 -- DENEGAR explícitamente cualquier modificación
 DENY INSERT, UPDATE, DELETE ON SCHEMA::administracion TO [Sistemas];

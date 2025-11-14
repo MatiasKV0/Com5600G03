@@ -376,7 +376,7 @@ END;
 GO
 
 -----------------------------------------------------------
--- Creareamos un reporte 7 que convierte la deuda anterior y total a USD
+-- Configuracion para la API
 ------------------------------------------------------------
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
@@ -385,7 +385,8 @@ EXEC sp_configure 'Ole Automation Procedures', 1;
 RECONFIGURE;
 GO
 ------------------------------------------------------------
-
+-- Nueva tabla par el dolar
+------------------------------------------------------------
 IF NOT EXISTS (
     SELECT 1 FROM sys.objects o 
     JOIN sys.schemas s ON o.schema_id = s.schema_id 
@@ -413,7 +414,7 @@ END
 GO
 
 ------------------------------------------------------------
--- PASO 3: SP para consumir API (MEJORADO con mejor manejo de errores)
+-- SP API
 ------------------------------------------------------------
 CREATE OR ALTER PROCEDURE administracion.ActualizarCotizacionDolarOficial
 AS
@@ -523,7 +524,7 @@ END
 GO
 
 ------------------------------------------------------------
---  REPORTE 7 - Deudas anteriores y totales de las UF.
+--  REPORTE 7 Deudas anteriores y totales de UF en pesos y dolares
 ------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte7_DeudaPeriodo_ARS_USD
     @ConsorcioId INT = NULL,
@@ -533,7 +534,6 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Validar parámetros
     IF @ConsorcioId IS NULL OR @Anio IS NULL OR @Mes IS NULL
     BEGIN
         PRINT ' Debe proporcionar ConsorcioId, Año y Mes';
@@ -551,7 +551,6 @@ BEGIN
     WHERE casa = 'oficial'
     ORDER BY fecha_actualizacion DESC;
 
-    -- Si no hay cotización, usar valor por defecto
     IF @CotizacionVenta IS NULL OR @CotizacionVenta = 0
     BEGIN
         SET @CotizacionVenta = 1500.00;
@@ -605,23 +604,6 @@ BEGIN
 
 END;
 GO
-
-------------------------------------------------------------
--- PASO 5: Script de testing
-------------------------------------------------------------
-
--- Test 1: Actualizar cotización desde API
-PRINT '--- TEST 1: Consumir API de Dólar ---';
-EXEC administracion.ActualizarCotizacionDolarOficial;
-PRINT '';
-
--- Test 3: Ejecutar reporte con datos del consorcio 1
-PRINT '--- TEST 3: Reporte de Morosidad (Consorcio 1, 2025-10) ---';
-EXEC expensa.Reporte7_DeudaPeriodo_ARS_USD
-    @ConsorcioId = 1,
-    @Anio = 2025,
-    @Mes = 5;
-PRINT '';
 
 
 

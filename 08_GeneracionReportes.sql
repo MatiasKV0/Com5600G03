@@ -375,138 +375,6 @@ BEGIN
 END;
 GO
 
------------------------------------------------------------
--- Configuracion para la API
-------------------------------------------------------------
-EXEC sp_configure 'show advanced options', 1;
-RECONFIGURE;
-GO
-EXEC sp_configure 'Ole Automation Procedures', 1;
-RECONFIGURE;
-GO
-------------------------------------------------------------
--- Nueva tabla par el dolar
-------------------------------------------------------------
-IF NOT EXISTS (
-    SELECT 1 FROM sys.objects o 
-    JOIN sys.schemas s ON o.schema_id = s.schema_id 
-    WHERE o.name = 'cotizacion_dolar' 
-    AND s.name = 'administracion' 
-    AND o.type = 'U'
-)
-BEGIN
-    CREATE TABLE administracion.cotizacion_dolar (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        moneda VARCHAR(3) NOT NULL,
-        casa VARCHAR(50) NOT NULL,
-        nombre VARCHAR(50) NOT NULL,
-        compra DECIMAL(18, 2) NOT NULL,
-        venta DECIMAL(18, 2) NOT NULL,
-        fecha_actualizacion DATETIME2 NOT NULL,
-        fecha_registro_local DATETIME DEFAULT GETDATE()
-    );
-    PRINT 'Tabla cotizacion_dolar creada';
-END
-ELSE
-BEGIN
-    PRINT 'Tabla cotizacion_dolar ya existe';
-END
-GO
-
-------------------------------------------------------------
--- SP API
-------------------------------------------------------------
-CREATE OR ALTER PROCEDURE administracion.ActualizarCotizacionDolarOficial
-AS
-BEGIN
-    SET NOCOUNT ON;
-    
-    DECLARE @obj INT;
-    DECLARE @errorMsg NVARCHAR(4000);
-    DECLARE @Object AS INT;
-    DECLARE @ResponseText AS VARCHAR(8000);
-    DECLARE @URL AS VARCHAR(255) = 'https://dolarapi.com/v1/dolares/oficial';
-
-    BEGIN TRY
-
-        -- 1. Crear el objeto HTTP
-        EXEC sp_OACreate 'MSXML2.ServerXMLHTTP', @Object OUT;
-
-        -- 2. Abrir la conexión
-        EXEC sp_OAMethod @Object, 'open', NULL, 'GET', @URL, 'false';
-
-        -- 3. Enviar la petición
-        EXEC sp_OAMethod @Object, 'send';
-
-        -- 4. Obtener la respuesta
-        EXEC sp_OAGetProperty @Object, 'responseText', @ResponseText OUTPUT;
-
-        -- 5. Destruir el objeto
-        EXEC sp_OADestroy @Object;
-
-        -- 6. PARSEAR EL JSON
-
-        SELECT 
-            compra,
-            venta,
-            fechaActualizacion
-        FROM OPENJSON(@ResponseText)
-        WITH (
-            compra DECIMAL(18, 2) '$.compra',
-            venta DECIMAL(18, 2) '$.venta',
-            fechaActualizacion DATETIME '$.fechaActualizacion'
-        );
-
-        -- Parsear JSON e insertar
-        INSERT INTO administracion.cotizacion_dolar (
-            moneda, casa, nombre, compra, venta, fecha_actualizacion
-        )
-        SELECT
-            moneda, casa, nombre, compra, venta, fechaActualizacion
-        FROM OPENJSON(@ResponseText)
-        WITH (
-            moneda VARCHAR(3) '$.moneda',
-            casa VARCHAR(50) '$.casa',
-            nombre VARCHAR(50) '$.nombre',
-            compra DECIMAL(18, 2) '$.compra',
-            venta DECIMAL(18, 2) '$.venta',
-            fechaActualizacion DATETIME2 '$.fechaActualizacion'
-        ) AS jsonValues
-        WHERE NOT EXISTS (
-            SELECT 1 FROM administracion.cotizacion_dolar 
-            WHERE fecha_actualizacion = jsonValues.fechaActualizacion
-        );
-
-        PRINT ' Cotización actualizada exitosamente desde la API';
-
-        -- Mostrar última cotización
-        SELECT TOP 1 
-            'Última cotización obtenida:' AS Info,
-            nombre,
-            compra AS Compra_ARS,
-            venta AS Venta_ARS,
-            fecha_actualizacion AS Fecha_API
-        FROM administracion.cotizacion_dolar
-        ORDER BY fecha_actualizacion DESC;
-
-        RETURN 0;
-
-    END TRY
-    BEGIN CATCH
-        IF @obj IS NOT NULL EXEC sp_OADestroy @obj; 
-        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
-        DECLARE @ErrorNumber INT = ERROR_NUMBER();
-        PRINT 'Error Número: ' + CAST(@ErrorNumber AS VARCHAR(20));
-        PRINT 'Error Mensaje: ' + @ErrorMessage;
-        SET @errorMsg = ERROR_MESSAGE();
-        RAISERROR(@errorMsg, 16, 1);
-        
-        RETURN -1;
-    END CATCH
-END
-GO
-
-
 ------------------------------------------------------------
 --  REPORTE 7 Deudas anteriores y totales de UF en pesos y dolares
 ------------------------------------------------------------
@@ -520,25 +388,41 @@ BEGIN
 
     IF @ConsorcioId IS NULL OR @Anio IS NULL OR @Mes IS NULL
     BEGIN
-        PRINT ' Debe proporcionar ConsorcioId, Año y Mes';
+        PRINT 'Debe proporcionar ConsorcioId, Año y Mes';
         RETURN -1;
     END
 
-    -- Obtener cotización (usar la más reciente o valor por defecto)
-    DECLARE @CotizacionVenta DECIMAL(18, 2);
-    DECLARE @FechaCotizacion DATETIME2;
+    -- Consumir API de cotización del dólar
+    DECLARE @url NVARCHAR(256) = 'https://dolarapi.com/v1/dolares/oficial'
+    DECLARE @Object INT 
+    DECLARE @json TABLE(respuesta NVARCHAR(MAX)) 
+    DECLARE @respuesta NVARCHAR(MAX)
+    DECLARE @CotizacionVenta DECIMAL(18, 2)
     
-    SELECT TOP 1 
-        @CotizacionVenta = venta,
-        @FechaCotizacion = fecha_actualizacion
-    FROM administracion.cotizacion_dolar
-    WHERE casa = 'oficial'
-    ORDER BY fecha_actualizacion DESC;
+    -- Crear objeto HTTP 
+    EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT 
+    EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE' 
+    EXEC sp_OAMethod @Object, 'SEND' 
+    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT
+    
+    -- Guardar la respuesta JSON en la tabla 
+    INSERT @json 
+    EXEC sp_OAGetProperty @Object, 'RESPONSETEXT'
+    
+    -- Extraer la respuesta a una variable 
+    SELECT @respuesta = respuesta FROM @json
+    
+    -- Extraer el valor de venta del JSON
+    SET @CotizacionVenta = JSON_VALUE(@respuesta, '$.venta')
+    
+    -- Destruir objeto
+    EXEC sp_OADestroy @Object
 
+    -- Validar cotización
     IF @CotizacionVenta IS NULL OR @CotizacionVenta = 0
     BEGIN
         SET @CotizacionVenta = 1500.00;
-        PRINT ' ADVERTENCIA: No hay cotización de API disponible';
+        PRINT 'ADVERTENCIA: No se pudo obtener cotización de API, usando valor por defecto';
     END
 
     -- Generar reporte
@@ -560,7 +444,7 @@ BEGIN
         
         -- Info de cotización
         @CotizacionVenta AS TasaCambio_ARS_USD,
-        @FechaCotizacion AS FechaCotizacion
+        GETDATE() AS FechaConsulta
         
     FROM expensa.periodo p
     INNER JOIN administracion.consorcio c 

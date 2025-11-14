@@ -62,14 +62,10 @@ EXEC expensa.Reporte_FechasPagosUF
     @UFCodigo = 1,
     @TipoPago = 'ORDINARIO'
 GO
--- ACTUALIZAR API DOLAR
-EXEC administracion.ActualizarCotizacionDolarOficial
-GO
-
 
 -- REPORTE 7
 EXEC expensa.Reporte7_DeudaPeriodo_ARS_USD
-    @ConsorcioId = 3,
+    @ConsorcioId = 2,
     @Anio = 2025,
     @Mes = 4;
 GO

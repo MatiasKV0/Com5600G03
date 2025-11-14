@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Pr·ctico Integrador - ENTREGA 7
-ComisiÛn: 5600
+Trabajo Pr√°ctico Integrador - ENTREGA 7
+Comisi√≥n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -15,18 +15,18 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 
 /*
 
-==================================================
----------ñ-- Politica de Respaldo ñ---------------
-==================================================
+--------------------------------------------------
+				Politica de Respaldo
+--------------------------------------------------
 
 Con el fin de mantener protegida la informacion del sistema de expensas y asegurar que pueda recuperarse ante fallos o errores,
 se propone una politica de respaldo que combina distintos tipos de copias segun el nivel de detalle que se necesite en cada momento. 
-La idea es contar con un esquema equilibrado, que permita restaurar la base de datos sin pÈrdida significativa de informacion 
+La idea es contar con un esquema equilibrado, que permita restaurar la base de datos sin p√©rdida significativa de informacion 
 y sin afectar el rendimiento general del sistema durante su uso diario.
 
-==================================================
-ñ------- Frecuencia de los Backups ñ--------------
-==================================================
+--------------------------------------------------
+			 Frecuencia de los Backups 
+--------------------------------------------------
 
 El plan contempla tres tipos de respaldos:
 
@@ -40,18 +40,18 @@ El plan contempla tres tipos de respaldos:
 	entre las 08:00 y las 20:00. Esto permite conservar un historial muy reciente de operaciones y facilita 
 	regresar a un estado cercano en caso de algun fallo.
 
-==================================================
----------------Definicion del RPO-----------------
-==================================================
+--------------------------------------------------
+				Definicion del RPO
+--------------------------------------------------
 
 A partir de este esquema, el punto maximo aceptable de perdida de datos (RPO) se establece en 1 hora. 
 Esto implica que, en caso de un fallo inesperado, como maximo se perderia la informacion generada en la ultima hora.
 Es un valor adecuado para el sistema del consorcio, donde la mayoria de las operaciones relevantes se cargan en momentos
 puntuales del dia y no de forma continua.
 
-==================================================
-------------ñ Motivos de la Eleccion ñ-----------
-==================================================
+--------------------------------------------------
+			 Motivos de la Eleccion 
+--------------------------------------------------
 
 La combinacion de un FULL semanal, diferenciales diarios y logs frecuentes permite un equilibrio
 entre seguridad y eficiencia. Los FULL permiten tener una copia completa sin cargar de mas al servidor, 

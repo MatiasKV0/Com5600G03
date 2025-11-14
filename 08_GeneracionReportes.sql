@@ -516,12 +516,20 @@ BEGIN
 
     END TRY
     BEGIN CATCH
-        IF @obj IS NOT NULL EXEC sp_OADestroy @obj;
+        IF @obj IS NOT NULL EXEC sp_OADestroy @obj; 
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorNumber INT = ERROR_NUMBER();
+        PRINT 'Error Número: ' + CAST(@ErrorNumber AS VARCHAR(20));
+        PRINT 'Error Mensaje: ' + @ErrorMessage;
         SET @errorMsg = ERROR_MESSAGE();
+        RAISERROR(@errorMsg, 16, 1);
+        
         RETURN -1;
     END CATCH
 END
 GO
+
+
 
 ------------------------------------------------------------
 --  REPORTE 7 Deudas anteriores y totales de UF en pesos y dolares

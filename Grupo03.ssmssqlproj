@@ -69,6 +69,84 @@
           <AssociatedConnUserName />
           <FullPath>02_SP_Importar_UF.sql</FullPath>
         </FileNode>
+        <FileNode Name="03_SP_Importar_Gastos.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>03_SP_Importar_Gastos.sql</FullPath>
+        </FileNode>
+        <FileNode Name="04_SP_Importar_Inq_Prop_UF.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>04_SP_Importar_Inq_Prop_UF.sql</FullPath>
+        </FileNode>
+        <FileNode Name="05_SP_Importar_Inq_Prop_Datos.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>05_SP_Importar_Inq_Prop_Datos.sql</FullPath>
+        </FileNode>
+        <FileNode Name="06_SP_Pagos_Consorcio.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>06_SP_Pagos_Consorcio.sql</FullPath>
+        </FileNode>
+        <FileNode Name="07_Ejecutar_Importaciones.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>07_Ejecutar_Importaciones.sql</FullPath>
+        </FileNode>
+        <FileNode Name="08_GeneracionReportes.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>08_GeneracionReportes.sql</FullPath>
+        </FileNode>
+        <FileNode Name="09_GeneracionIndices.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>09_GeneracionIndices.sql</FullPath>
+        </FileNode>
+        <FileNode Name="10_Ejecutar_Reportes.sql">
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnUserName />
+          <FullPath>10_Ejecutar_Reportes.sql</FullPath>
+        </FileNode>
+        <FileNode Name="11_CreacionRoles.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>11_CreacionRoles.sql</FullPath>
+        </FileNode>
+        <FileNode Name="12_Encriptacion.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>12_Encriptacion.sql</FullPath>
+        </FileNode>
+        <FileNode Name="13_Modificar_SP.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>13_Modificar_SP.sql</FullPath>
+        </FileNode>
+        <FileNode Name="14_ModificarReportes.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>14_ModificarReportes.sql</FullPath>
+        </FileNode>
+        <FileNode Name="15_Respaldo.sql">
+          <AssociatedConnectionMoniker />
+          <AssociatedConnSrvName />
+          <AssociatedConnUserName />
+          <FullPath>15_Respaldo.sql</FullPath>
+        </FileNode>
       </Items>
     </LogicalFolder>
   </Items>

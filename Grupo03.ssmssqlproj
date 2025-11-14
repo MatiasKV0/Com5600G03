@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<SqlWorkbenchSqlProject xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" Name="Grupo03">
+<SqlWorkbenchSqlProject xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" Name="Grupo03">
   <Items>
-    <LogicalFolder Name="Connections" Type="2" Sorted="true">
+    <LogicalFolder Name="Conexiones" Type="2" Sorted="true">
       <Items>
         <ConnectionNode Name="DESKTOP-DJ8QA14:">
           <Created>2025-10-31T19:27:14.3298648-03:00</Created>
@@ -18,12 +18,12 @@
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
         </ConnectionNode>
-        <ConnectionNode Name="DESKTOP-DJ8QA14:DESKTOP-DJ8QA14\Compumar">
+        <ConnectionNode Name="DESKTOP-DJ8QA14:">
           <Created>2025-11-07T14:46:44.0726545-03:00</Created>
           <Type>SQL</Type>
           <Server>DESKTOP-DJ8QA14</Server>
           <UserName />
-          <Authentication>Windows Authentication</Authentication>
+          <Authentication>SQL</Authentication>
           <InitialDB />
           <LoginTimeout>30</LoginTimeout>
           <TrustServerCertificate>False</TrustServerCertificate>
@@ -32,6 +32,21 @@
           <ExecutionTimeout>0</ExecutionTimeout>
           <ConnectionProtocol>NotSpecified</ConnectionProtocol>
           <ApplicationName>Microsoft SQL Server Management Studio - Query</ApplicationName>
+        </ConnectionNode>
+        <ConnectionNode Name="DESKTOP-G1JT4MS\SQLEXPRESS:DESKTOP-G1JT4MS\Matias">
+          <Created>2025-11-14T16:05:51.351264-03:00</Created>
+          <Type>SQL</Type>
+          <Server>DESKTOP-G1JT4MS\SQLEXPRESS</Server>
+          <UserName />
+          <Authentication>Autenticación de Windows</Authentication>
+          <InitialDB>Com5600G03</InitialDB>
+          <LoginTimeout>30</LoginTimeout>
+          <TrustServerCertificate>False</TrustServerCertificate>
+          <HostNameInServerCertificate />
+          <EncryptionOption>False</EncryptionOption>
+          <ExecutionTimeout>0</ExecutionTimeout>
+          <ConnectionProtocol>NotSpecified</ConnectionProtocol>
+          <ApplicationName>Microsoft SQL Server Management Studio - Consulta</ApplicationName>
         </ConnectionNode>
         <ConnectionNode Name="DESKTOP-OEUG4KG:">
           <Created>2025-10-30T15:20:53.0190288-03:00</Created>
@@ -49,7 +64,7 @@
         </ConnectionNode>
       </Items>
     </LogicalFolder>
-    <LogicalFolder Name="Queries" Type="0" Sorted="true">
+    <LogicalFolder Name="Consultas" Type="0" Sorted="true">
       <Items>
         <FileNode Name="00_CreacionDB.sql">
           <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
@@ -58,62 +73,62 @@
           <FullPath>00_CreacionDB.sql</FullPath>
         </FileNode>
         <FileNode Name="01_SP_Importar_Consorcios.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>01_SP_Importar_Consorcios.sql</FullPath>
         </FileNode>
         <FileNode Name="02_SP_Importar_UF.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>02_SP_Importar_UF.sql</FullPath>
         </FileNode>
         <FileNode Name="03_SP_Importar_Gastos.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>03_SP_Importar_Gastos.sql</FullPath>
         </FileNode>
         <FileNode Name="04_SP_Importar_Inq_Prop_UF.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>04_SP_Importar_Inq_Prop_UF.sql</FullPath>
         </FileNode>
         <FileNode Name="05_SP_Importar_Inq_Prop_Datos.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>05_SP_Importar_Inq_Prop_Datos.sql</FullPath>
         </FileNode>
         <FileNode Name="06_SP_Pagos_Consorcio.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>06_SP_Pagos_Consorcio.sql</FullPath>
         </FileNode>
         <FileNode Name="07_Ejecutar_Importaciones.sql">
-          <AssociatedConnectionMoniker />
-          <AssociatedConnSrvName />
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>07_Ejecutar_Importaciones.sql</FullPath>
         </FileNode>
         <FileNode Name="08_GeneracionReportes.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>08_GeneracionReportes.sql</FullPath>
         </FileNode>
         <FileNode Name="09_GeneracionIndices.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>09_GeneracionIndices.sql</FullPath>
         </FileNode>
         <FileNode Name="10_Ejecutar_Reportes.sql">
-          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-DJ8QA14:True</AssociatedConnectionMoniker>
-          <AssociatedConnSrvName>DESKTOP-DJ8QA14</AssociatedConnSrvName>
+          <AssociatedConnectionMoniker>8c91a03d-f9b4-46c0-a305-b5dcc79ff907:DESKTOP-G1JT4MS\SQLEXPRESS:True</AssociatedConnectionMoniker>
+          <AssociatedConnSrvName>DESKTOP-G1JT4MS\SQLEXPRESS</AssociatedConnSrvName>
           <AssociatedConnUserName />
           <FullPath>10_Ejecutar_Reportes.sql</FullPath>
         </FileNode>

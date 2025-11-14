@@ -422,63 +422,40 @@ BEGIN
     SET NOCOUNT ON;
     
     DECLARE @obj INT;
-    DECLARE @url VARCHAR(255) = 'https://dolarapi.com/v1/dolares/oficial';
-    DECLARE @jsonResponse NVARCHAR(MAX);
-    DECLARE @hr INT;
-    DECLARE @status INT;
     DECLARE @errorMsg NVARCHAR(4000);
+    DECLARE @Object AS INT;
+    DECLARE @ResponseText AS VARCHAR(8000);
+    DECLARE @URL AS VARCHAR(255) = 'https://dolarapi.com/v1/dolares/oficial';
 
     BEGIN TRY
-        -- Crear objeto HTTP
-        EXEC @hr = sp_OACreate 'MSXML2.ServerXMLHTTP.6.0', @obj OUT;
-        IF @hr <> 0 
-        BEGIN
-            RAISERROR('Error al crear objeto HTTP. Verifique que Ole Automation esté habilitado.', 16, 1);
-            RETURN -1;
-        END
 
-        -- Abrir conexión
-        EXEC @hr = sp_OAMethod @obj, 'open', NULL, 'GET', @url, 'false';
-        IF @hr <> 0 
-        BEGIN
-            EXEC sp_OADestroy @obj;
-            RAISERROR('Error al abrir conexión HTTP', 16, 1);
-            RETURN -1;
-        END
+        -- 1. Crear el objeto HTTP
+        EXEC sp_OACreate 'MSXML2.ServerXMLHTTP', @Object OUT;
 
-        -- Configurar timeout
-        EXEC @hr = sp_OAMethod @obj, 'setTimeouts', NULL, 5000, 5000, 10000, 10000;
+        -- 2. Abrir la conexión
+        EXEC sp_OAMethod @Object, 'open', NULL, 'GET', @URL, 'false';
 
-        -- Enviar request
-        EXEC @hr = sp_OAMethod @obj, 'send';
-        IF @hr <> 0 
-        BEGIN
-            EXEC sp_OADestroy @obj;
-            RAISERROR('Error al enviar request HTTP', 16, 1);
-            RETURN -1;
-        END
+        -- 3. Enviar la petición
+        EXEC sp_OAMethod @Object, 'send';
 
-        -- Verificar status
-        EXEC @hr = sp_OAGetProperty @obj, 'status', @status OUT;
-        IF @status <> 200
-        BEGIN
-            EXEC sp_OADestroy @obj;
-            SET @errorMsg = 'La API retornó status: ' + CAST(@status AS VARCHAR(10));
-            RAISERROR(@errorMsg, 16, 1);
-            RETURN -1;
-        END
+        -- 4. Obtener la respuesta
+        EXEC sp_OAGetProperty @Object, 'responseText', @ResponseText OUTPUT;
 
-        -- Obtener respuesta
-        EXEC @hr = sp_OAGetProperty @obj, 'responseText', @jsonResponse OUT;
-        IF @hr <> 0 OR @jsonResponse IS NULL
-        BEGIN
-            EXEC sp_OADestroy @obj;
-            RAISERROR('Error al obtener respuesta de la API', 16, 1);
-            RETURN -1;
-        END
+        -- 5. Destruir el objeto
+        EXEC sp_OADestroy @Object;
 
-        -- Destruir objeto
-        EXEC sp_OADestroy @obj;
+        -- 6. PARSEAR EL JSON (¡Esto ya lo conoces!)
+
+        SELECT 
+            compra,
+            venta,
+            fechaActualizacion
+        FROM OPENJSON(@ResponseText)
+        WITH (
+            compra DECIMAL(18, 2) '$.compra',
+            venta DECIMAL(18, 2) '$.venta',
+            fechaActualizacion DATETIME '$.fechaActualizacion'
+        );
 
         -- Parsear JSON e insertar
         INSERT INTO administracion.cotizacion_dolar (
@@ -486,7 +463,7 @@ BEGIN
         )
         SELECT
             moneda, casa, nombre, compra, venta, fechaActualizacion
-        FROM OPENJSON(@jsonResponse)
+        FROM OPENJSON(@ResponseText)
         WITH (
             moneda VARCHAR(3) '$.moneda',
             casa VARCHAR(50) '$.casa',
@@ -528,7 +505,6 @@ BEGIN
     END CATCH
 END
 GO
-
 
 
 ------------------------------------------------------------

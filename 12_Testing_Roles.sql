@@ -20,10 +20,8 @@ USE Com5600G03;
 GO
 
 
+--LISTAR TODOS LOS ROLES CREADOS
 
--- =================================================================
--- 1. LISTAR TODOS LOS ROLES CREADOS
--- =================================================================
 
 SELECT 
     name AS 'Rol',
@@ -41,34 +39,9 @@ WHERE type = 'R'
 ORDER BY name;
 
 
--- =================================================================
--- 2. PERMISOS POR ROL - VISTA RESUMIDA
--- =================================================================
 
-SELECT 
-    rol.name AS 'Rol',
-    COUNT(DISTINCT CASE WHEN perm.permission_name = 'SELECT' THEN perm.major_id END) AS 'Permisos SELECT',
-    COUNT(DISTINCT CASE WHEN perm.permission_name = 'INSERT' THEN perm.major_id END) AS 'Permisos INSERT',
-    COUNT(DISTINCT CASE WHEN perm.permission_name = 'UPDATE' THEN perm.major_id END) AS 'Permisos UPDATE',
-    COUNT(DISTINCT CASE WHEN perm.permission_name = 'DELETE' THEN perm.major_id END) AS 'Permisos DELETE',
-    COUNT(DISTINCT CASE WHEN perm.permission_name = 'EXECUTE' THEN perm.major_id END) AS 'Permisos EXECUTE'
-FROM sys.database_principals rol
-LEFT JOIN sys.database_permissions perm ON rol.principal_id = perm.grantee_principal_id
-    AND perm.state = 'G' -- GRANT
-WHERE rol.type = 'R' 
-    AND rol.name IN (
-        'Administrativo General', 
-        'Administrativo Bancario', 
-        'Administrativo Operativo', 
-        'Sistemas'
-    )
-GROUP BY rol.name
-ORDER BY rol.name;
+-- PERMISOS SOBRE ESQUEMAS
 
-
--- =================================================================
--- 3. PERMISOS SOBRE ESQUEMAS - DETALLADO
--- =================================================================
 
 SELECT 
     rol.name AS 'Rol',
@@ -89,9 +62,9 @@ WHERE rol.type = 'R'
 ORDER BY rol.name, sch.name, perm.permission_name;
 
 
--- =================================================================
--- 4. PERMISOS DENEGADOS (DENY) - IMPORTANTE
--- =================================================================
+
+-- PERMISOS DENEGADOS (DENY)
+
 SELECT 
     rol.name AS 'Rol',
     CASE perm.class
@@ -113,9 +86,9 @@ WHERE rol.type = 'R'
     AND perm.state = 'D' -- DENY
 ORDER BY rol.name, Objeto;
 
--- =================================================================
--- 5. PERMISOS SOBRE STORED PROCEDURES
--- =================================================================
+
+-- PERMISOS SOBRE STORED PROCEDURES
+
 SELECT 
     rol.name AS 'Rol',
     SCHEMA_NAME(obj.schema_id) AS 'Esquema',
@@ -137,103 +110,10 @@ WHERE rol.type = 'R'
 ORDER BY rol.name, SCHEMA_NAME(obj.schema_id), obj.name;
 
 
--- =================================================================
--- 6. COMPARATIVA DE PERMISOS POR ROL (TABLA CRUZADA)
--- =================================================================
-WITH PermisosRoles AS (
-    SELECT 
-        rol.name AS Rol,
-        'Ver datos (SELECT)' AS Accion,
-        CASE WHEN EXISTS (
-            SELECT 1 FROM sys.database_permissions p
-            WHERE p.grantee_principal_id = rol.principal_id
-                AND p.permission_name = 'SELECT'
-                AND p.state = 'G'
-        ) THEN 'V' ELSE 'X' END AS Permitido
-    FROM sys.database_principals rol
-    WHERE rol.name IN ('Administrativo General', 'Administrativo Bancario', 'Administrativo Operativo', 'Sistemas')
-    
-    UNION ALL
-    
-    SELECT 
-        rol.name,
-        'Modificar UF y Personas' AS Accion,
-        CASE WHEN EXISTS (
-            SELECT 1 FROM sys.database_permissions p
-            INNER JOIN sys.schemas s ON p.major_id = s.schema_id
-            WHERE p.grantee_principal_id = rol.principal_id
-                AND s.name IN ('unidad_funcional', 'persona')
-                AND p.permission_name IN ('INSERT', 'UPDATE', 'DELETE')
-                AND p.state = 'G'
-                AND p.class = 3
-        ) THEN 'V' ELSE 'X' END
-    FROM sys.database_principals rol
-    WHERE rol.name IN ('Administrativo General', 'Administrativo Bancario', 'Administrativo Operativo', 'Sistemas')
-    
-    UNION ALL
-    
-    SELECT 
-        rol.name,
-        'Gestionar Pagos (Bancario)' AS Accion,
-        CASE WHEN EXISTS (
-            SELECT 1 FROM sys.database_permissions p
-            INNER JOIN sys.schemas s ON p.major_id = s.schema_id
-            WHERE p.grantee_principal_id = rol.principal_id
-                AND s.name = 'banco'
-                AND p.permission_name IN ('INSERT', 'UPDATE', 'DELETE')
-                AND p.state = 'G'
-                AND p.class = 3
-        ) THEN 'V' ELSE 'X' END
-    FROM sys.database_principals rol
-    WHERE rol.name IN ('Administrativo General', 'Administrativo Bancario', 'Administrativo Operativo', 'Sistemas')
-    
-    UNION ALL
-    
-    SELECT 
-        rol.name,
-        'Gestionar Gastos' AS Accion,
-        CASE WHEN EXISTS (
-            SELECT 1 FROM sys.database_permissions p
-            INNER JOIN sys.schemas s ON p.major_id = s.schema_id
-            WHERE p.grantee_principal_id = rol.principal_id
-                AND s.name = 'expensa'
-                AND p.permission_name IN ('INSERT', 'UPDATE')
-                AND p.state = 'G'
-                AND p.class = 3
-        ) THEN 'V' ELSE 'X' END
-    FROM sys.database_principals rol
-    WHERE rol.name IN ('Administrativo General', 'Administrativo Bancario', 'Administrativo Operativo', 'Sistemas')
-    
-    UNION ALL
-    
-    SELECT 
-        rol.name,
-        'Ejecutar Reportes' AS Accion,
-        CASE WHEN EXISTS (
-            SELECT 1 FROM sys.database_permissions p
-            INNER JOIN sys.objects o ON p.major_id = o.object_id
-            WHERE p.grantee_principal_id = rol.principal_id
-                AND o.name LIKE 'Reporte%'
-                AND p.permission_name = 'EXECUTE'
-                AND p.state = 'G'
-        ) THEN 'V' ELSE 'X' END
-    FROM sys.database_principals rol
-    WHERE rol.name IN ('Administrativo General', 'Administrativo Bancario', 'Administrativo Operativo', 'Sistemas')
-)
-SELECT 
-    Accion,
-    MAX(CASE WHEN Rol = 'Administrativo General' THEN Permitido END) AS 'Adm. General',
-    MAX(CASE WHEN Rol = 'Administrativo Bancario' THEN Permitido END) AS 'Adm. Bancario',
-    MAX(CASE WHEN Rol = 'Administrativo Operativo' THEN Permitido END) AS 'Adm. Operativo',
-    MAX(CASE WHEN Rol = 'Sistemas' THEN Permitido END) AS 'Sistemas'
-FROM PermisosRoles
-GROUP BY Accion
-ORDER BY Accion;
 
 
--- =================================================================
--- 7. LISTADO DE TODOS LOS SP Y SU ACCESO POR ROL
--- =================================================================
+-- LISTADO DE TODOS LOS SP Y SU ACCESO POR ROL
+
 SELECT 
     SCHEMA_NAME(p.schema_id) AS 'Esquema',
     p.name AS 'Stored Procedure',

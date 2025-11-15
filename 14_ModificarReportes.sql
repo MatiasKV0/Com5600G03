@@ -23,7 +23,7 @@ GO
 ----------------------------------------------------------------
 --  MODIFICACIÓN DE SPs DE REPORTES 
 ----------------------------------------------------------------
-PRINT '--- Parte 2: Modificando SPs de Reportes para Cifrado ---';
+PRINT '--- Modificando SPs de Reportes para Cifrado ---';
 GO
 
 ----------------------------------------------------------------
@@ -393,7 +393,7 @@ GO
 ----------------------------------------------------------------
 -- PARTE 3: FIRMA DE STORED PROCEDURES
 ----------------------------------------------------------------
-PRINT '--- Parte 3: Firmando SPs de Reportes ---';
+PRINT '--- Firmando SPs de Reportes ---';
 GO
 
 ADD SIGNATURE TO expensa.Reporte_RecaudacionSemanal
@@ -431,5 +431,5 @@ BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte7_DeudaPeriodo_ARS_USD firmado.';
 GO
 
-PRINT '--- SCRIPT 14 (Versión Corregida) FINALIZADO ---';
+PRINT '--- SCRIPT FINALIZADO ---';
 GO

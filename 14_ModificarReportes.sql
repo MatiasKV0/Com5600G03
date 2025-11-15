@@ -23,10 +23,12 @@ GO
 ----------------------------------------------------------------
 --  MODIFICACIÓN DE SPs DE REPORTES 
 ----------------------------------------------------------------
-PRINT '--- Parte 2: Modificando SPs de Reportes para Cifrado ---';
+PRINT '--- Modificando SPs de Reportes para Cifrado ---';
 GO
 
+----------------------------------------------------------------
 -- 1. expensa.Reporte_RecaudacionSemanal
+----------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionSemanal
     @FechaInicio DATE = NULL,
     @FechaFin DATE = NULL,
@@ -76,8 +78,9 @@ GO
 
 PRINT 'SP expensa.Reporte_RecaudacionSemanal modificado.';
 GO 
-
+----------------------------------------------------------------
 -- 2. expensa.Reporte_RecaudacionMesDepartamentos
+----------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionMesDepartamentos
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
@@ -121,8 +124,9 @@ GO
 
 PRINT 'SP expensa.Reporte_RecaudacionMesDepartamentos modificado.';
 GO 
-
+----------------------------------------------------------------
 -- 3. expensa.Reporte_RecaudacionPorTipoPeriodo
+----------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionPorTipoPeriodo
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
@@ -154,7 +158,9 @@ GO
 PRINT 'SP expensa.Reporte_RecaudacionPorTipoPeriodo modificado.';
 GO 
 
+----------------------------------------------------------------
 -- 4. expensa.Reporte_TopMesesGastosIngresos
+-----------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte_TopMesesGastosIngresos
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
@@ -198,8 +204,9 @@ GO
 
 PRINT 'SP expensa.Reporte_TopMesesGastosIngresos modificado.';
 GO
-
+----------------------------------------------------------------------
 -- 5. expensa.Reporte_Top3Morosos
+----------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte_Top3Morosos
     @ConsorcioId INT,
     @TopN INT,
@@ -247,8 +254,9 @@ GO
 
 PRINT 'SP expensa.Reporte_Top3Morosos modificado.';
 GO
-
--- 6. expensa.Reporte_FechasPagosUF (CON CORRECCIÓN DATEDIFF)
+----------------------------------------------------------------------
+-- 6. expensa.Reporte_FechasPagosUF 
+----------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte_FechasPagosUF
     @ConsorcioId INT,
     @UFCodigo INT,
@@ -277,8 +285,9 @@ GO
 
 PRINT 'SP expensa.Reporte_FechasPagosUF modificado y corregido.';
 GO 
-
+-------------------------------------------------------------------------
 -- 7. expensa.Reporte7_DeudaPeriodo_ARS_USD
+-------------------------------------------------------------------------
 CREATE OR ALTER PROCEDURE expensa.Reporte7_DeudaPeriodo_ARS_USD
     @ConsorcioId INT = NULL,
     @Anio INT = NULL,
@@ -286,58 +295,105 @@ CREATE OR ALTER PROCEDURE expensa.Reporte7_DeudaPeriodo_ARS_USD
 AS
 BEGIN
     SET NOCOUNT ON;
+    
+    -- Abrir clave simétrica para desencriptar datos
     OPEN SYMMETRIC KEY SK_DatosSensibles DECRYPTION BY CERTIFICATE CertParaDatosSensibles;
+    
     IF @ConsorcioId IS NULL OR @Anio IS NULL OR @Mes IS NULL
     BEGIN
-        PRINT ' Debe proporcionar ConsorcioId, Año y Mes';
+        PRINT 'Debe proporcionar ConsorcioId, Año y Mes';
         CLOSE SYMMETRIC KEY SK_DatosSensibles;
-        RETURN; 
+        RETURN -1;
     END
-    DECLARE @CotizacionVenta DECIMAL(18, 2);
-    DECLARE @FechaCotizacion DATETIME2;
-    SELECT TOP 1 @CotizacionVenta = venta, @FechaCotizacion = fecha_actualizacion
-    FROM administracion.cotizacion_dolar
-    WHERE casa = 'oficial'
-    ORDER BY fecha_actualizacion DESC;
+    
+    -- Consumir API de cotización del dólar
+    DECLARE @url NVARCHAR(256) = 'https://dolarapi.com/v1/dolares/oficial'
+    DECLARE @Object INT 
+    DECLARE @json TABLE(respuesta NVARCHAR(MAX)) 
+    DECLARE @respuesta NVARCHAR(MAX)
+    DECLARE @CotizacionVenta DECIMAL(18, 2)
+    
+    -- Crear objeto HTTP 
+    EXEC sp_OACreate 'MSXML2.XMLHTTP', @Object OUT 
+    EXEC sp_OAMethod @Object, 'OPEN', NULL, 'GET', @url, 'FALSE' 
+    EXEC sp_OAMethod @Object, 'SEND' 
+    EXEC sp_OAMethod @Object, 'RESPONSETEXT', @respuesta OUTPUT
+    
+    -- Guardar la respuesta JSON en la tabla 
+    INSERT @json 
+    EXEC sp_OAGetProperty @Object, 'RESPONSETEXT'
+    
+    -- Extraer la respuesta a una variable 
+    SELECT @respuesta = respuesta FROM @json
+    
+    -- Extraer el valor de venta del JSON
+    SET @CotizacionVenta = JSON_VALUE(@respuesta, '$.venta')
+    
+    -- Destruir objeto
+    EXEC sp_OADestroy @Object
+    
+    -- Validar cotización
     IF @CotizacionVenta IS NULL OR @CotizacionVenta = 0
     BEGIN
         SET @CotizacionVenta = 1500.00;
-        PRINT ' ADVERTENCIA: No hay cotización de API disponible';
+        PRINT 'ADVERTENCIA: No se pudo obtener cotización de API, usando valor por defecto';
     END
+    
+    -- Generar reporte con desencriptación de nombre
     SELECT 
         c.nombre AS Consorcio,
         CONCAT(@Anio, '-', RIGHT('0' + CAST(@Mes AS VARCHAR(2)), 2)) AS Periodo,
         uf.codigo AS UnidadFuncional,
         ISNULL(CONVERT(VARCHAR(200), DECRYPTBYKEY(pna.nombre_completo)), 'Desconocido') AS Propietario,
+        
+        -- Deudas en ARS
         ISNULL(SUM(eu.deuda_anterior), 0) AS DeudaAnterior_ARS,
         ISNULL(SUM(eu.interes_mora), 0) AS InteresMora_ARS,
         ISNULL(SUM(eu.deuda_anterior + eu.interes_mora), 0) AS DeudaTotal_ARS,
+        
+        -- Conversión a USD usando API
         ROUND(ISNULL(SUM(eu.deuda_anterior), 0) / @CotizacionVenta, 2) AS DeudaAnterior_USD,
         ROUND(ISNULL(SUM(eu.interes_mora), 0) / @CotizacionVenta, 2) AS InteresMora_USD,
         ROUND(ISNULL(SUM(eu.deuda_anterior + eu.interes_mora), 0) / @CotizacionVenta, 2) AS DeudaTotal_USD,
+        
+        -- Info de cotización
         @CotizacionVenta AS TasaCambio_ARS_USD,
-        @FechaCotizacion AS FechaCotizacion
+        GETDATE() AS FechaConsulta
+        
     FROM expensa.periodo p
-    INNER JOIN administracion.consorcio c ON p.consorcio_id = c.consorcio_id
-    INNER JOIN expensa.expensa_uf eu ON p.periodo_id = eu.periodo_id
-    INNER JOIN unidad_funcional.unidad_funcional uf ON eu.uf_id = uf.uf_id
-    LEFT JOIN unidad_funcional.uf_persona_vinculo upv ON uf.uf_id = upv.uf_id AND upv.rol = 'PROPIETARIO' AND upv.fecha_hasta IS NULL
-    LEFT JOIN persona.persona pna ON upv.persona_id = pna.persona_id
-    WHERE p.consorcio_id = @ConsorcioId AND p.anio = @Anio AND p.mes = @Mes
+    INNER JOIN administracion.consorcio c 
+        ON p.consorcio_id = c.consorcio_id
+    INNER JOIN expensa.expensa_uf eu 
+        ON p.periodo_id = eu.periodo_id
+    INNER JOIN unidad_funcional.unidad_funcional uf 
+        ON eu.uf_id = uf.uf_id
+    LEFT JOIN unidad_funcional.uf_persona_vinculo upv 
+        ON uf.uf_id = upv.uf_id 
+        AND upv.rol = 'PROPIETARIO' 
+        AND upv.fecha_hasta IS NULL
+    LEFT JOIN persona.persona pna 
+        ON upv.persona_id = pna.persona_id
+    
+    WHERE p.consorcio_id = @ConsorcioId
+        AND p.anio = @Anio
+        AND p.mes = @Mes
+        
     GROUP BY c.nombre, uf.codigo, pna.nombre_completo
+        
     HAVING SUM(eu.deuda_anterior + eu.interes_mora) > 0
+        
     ORDER BY DeudaTotal_ARS DESC;
+    
+    -- Cerrar clave simétrica
     CLOSE SYMMETRIC KEY SK_DatosSensibles;
 END;
-GO 
-
-PRINT 'SP expensa.Reporte7_DeudaPeriodo_ARS_USD modificado.';
 GO
+
 
 ----------------------------------------------------------------
 -- PARTE 3: FIRMA DE STORED PROCEDURES
 ----------------------------------------------------------------
-PRINT '--- Parte 3: Firmando SPs de Reportes ---';
+PRINT '--- Firmando SPs de Reportes ---';
 GO
 
 ADD SIGNATURE TO expensa.Reporte_RecaudacionSemanal
@@ -375,5 +431,5 @@ BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte7_DeudaPeriodo_ARS_USD firmado.';
 GO
 
-PRINT '--- SCRIPT 14 (Versión Corregida) FINALIZADO ---';
+PRINT '--- SCRIPT FINALIZADO ---';
 GO

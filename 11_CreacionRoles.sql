@@ -67,6 +67,14 @@ GRANT EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Administrativo
 GRANT EXECUTE ON persona.ImportarInquilinosPropietarios TO [Administrativo General];
 GRANT EXECUTE ON administracion.CrearPeriodos TO [Administrativo General];
 
+GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal			 TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo	 TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos		 TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte_Top3Morosos				 TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte_FechasPagosUF				 TO [Administrativo General];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD		 TO [Administrativo General];
+
 -- DENY explícito a operaciones bancarias
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo General];
 DENY EXECUTE ON administracion.ImportarGastos TO [Administrativo General];
@@ -83,6 +91,15 @@ GO
 
 -- GRANT permisos correctos
 GRANT EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Bancario];
+
+
+GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal			 TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo	 TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos		 TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte_Top3Morosos				 TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte_FechasPagosUF				 TO [Administrativo Bancario];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD		 TO [Administrativo Bancario];
 
 -- DENY explícito a importaciones que no le corresponden
 DENY EXECUTE ON administracion.ImportarConsorcios TO [Administrativo Bancario];
@@ -111,6 +128,14 @@ GRANT EXECUTE ON administracion.ImportarArchivoUF TO [Administrativo Operativo];
 GRANT EXECUTE ON unidad_funcional.ImportarUnidadesFuncionales TO [Administrativo Operativo];
 GRANT EXECUTE ON persona.ImportarInquilinosPropietarios TO [Administrativo Operativo];
 
+GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal			 TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo	 TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos		 TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte_Top3Morosos				 TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte_FechasPagosUF				 TO [Administrativo Operativo];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD		 TO [Administrativo Operativo];
+
 -- DENY explícito a operaciones bancarias y consorcios
 DENY EXECUTE ON banco.ImportarYConciliarPagos TO [Administrativo Operativo];
 DENY EXECUTE ON administracion.ImportarConsorcios TO [Administrativo Operativo];
@@ -122,7 +147,13 @@ GO
 ----------------------------------------------------------------
 -- 5. PERMISOS PARA "SISTEMAS"
 ---------------------------------------------------------------
--- Permisos de SOLO LECTURA sobre todos los esquemas
+GRANT EXECUTE ON expensa.Reporte_RecaudacionSemanal			 TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionMesDepartamentos TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte_RecaudacionPorTipoPeriodo	 TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte_TopMesesGastosIngresos		 TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte_Top3Morosos				 TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte_FechasPagosUF				 TO [Sistemas];
+GRANT EXECUTE ON expensa.Reporte7_DeudaPeriodo_ARS_USD		 TO [Sistemas];
 
 DENY EXECUTE ON administracion.ImportarConsorcios TO [Sistemas];
 DENY EXECUTE ON administracion.ImportarArchivoUF TO [Sistemas];

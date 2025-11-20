@@ -27,10 +27,10 @@ GO
 IF NOT EXISTS (
     SELECT 1 
     FROM sys.indexes 
-    WHERE name = 'IDX_Reporte1' 
+    WHERE name = 'IX_reporte1' 
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IDX_Reporte1
+    CREATE NONCLUSTERED INDEX IX_reporte1
     ON banco.pago (fecha, uf_id, tipo)
     INCLUDE (importe);
 END;
@@ -42,11 +42,11 @@ GO
 IF NOT EXISTS (
     SELECT 1 
     FROM sys.indexes 
-    WHERE name = 'IDX_Reporte2' 
+    WHERE name = 'IX_reporte2' 
  
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IDX_Reporte2
+    CREATE NONCLUSTERED INDEX IX_reporte2
     ON unidad_funcional.unidad_funcional (consorcio_id, uf_id)
     INCLUDE (depto);
 END;
@@ -60,10 +60,10 @@ GO
 IF NOT EXISTS (
     SELECT 1 
     FROM sys.indexes 
-    WHERE name = 'IDX_Reporte3' 
+    WHERE name = 'IX_reporte3' 
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IDX_Reporte3
+    CREATE NONCLUSTERED INDEX IX_reporte3
     ON expensa.periodo (consorcio_id, anio, mes)
     INCLUDE (periodo_id);
 END;
@@ -76,10 +76,10 @@ GO
 IF NOT EXISTS (
     SELECT 1 
     FROM sys.indexes 
-    WHERE name = 'IDX_Reporte4'
+    WHERE name = 'IX_reporte4'
 )
 BEGIN
-    CREATE NONCLUSTERED INDEX IDX_Reporte4
+    CREATE NONCLUSTERED INDEX IX_reporte4
     ON expensa.gasto (periodo_id)
     INCLUDE (importe);
 END;

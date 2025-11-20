@@ -19,7 +19,7 @@ GO
 
 -- IMPORTAR TABLA CONSORCIOS DE CSV. Originalmente estos datos se encuentran en una tabla excel, se pide que exporte la hoja como csv para poder realizar la importacion
 
-CREATE OR ALTER PROCEDURE administracion.ImportarConsorcios
+CREATE OR ALTER PROCEDURE administracion.importar_consorcios
     @RutaArchivo NVARCHAR(300)
 AS
 BEGIN

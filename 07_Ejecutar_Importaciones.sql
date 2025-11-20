@@ -26,44 +26,44 @@ PRINT '';
 
 -- 1. Consorcios
 PRINT '1. Importando Consorcios...';
-EXEC administracion.ImportarConsorcios 
+EXEC administracion.importar_consorcios 
     @RutaArchivo = N'$(BasePath)datos varios(Consorcios).csv';
 PRINT '';
 
 -- 2. Unidades Funcionales
 PRINT '2. Importando UF...';
-EXEC administracion.ImportarArchivoUF
+EXEC administracion.importar_uf
     @RutaArchivo = N'$(BasePath)UF por consorcio.txt';
 PRINT '';
 
 -- 3. Tipos de Gasto
 PRINT '3. Cargando Tipos de Gasto...';
-EXEC administracion.CargarTipoGastos;
+EXEC administracion.cargar_tipo_gastos;
 PRINT '';
 
-EXEC administracion.CrearPeriodos @Anio = 2025;
+EXEC administracion.crear_periodos @Anio = 2025;
 
 -- 4. Proveedores
 PRINT '4. Importando Proveedores...';
-EXEC administracion.CargarProveedores
+EXEC administracion.cargar_proveedores
     @RutaArchivo = N'$(BasePath)datos varios(Proveedores).csv';
 PRINT '';
 
 -- 5. Gastos
 PRINT '5. Importando Gastos...';
-EXEC administracion.ImportarGastos
+EXEC administracion.importar_gastos
     @RutaArchivo = N'$(BasePath)Servicios.Servicios.json';
 PRINT '';
 
 -- 6. Cuentas
 PRINT '6. Importando Cuentas...';
-EXEC unidad_funcional.ImportarUnidadesFuncionales 
+EXEC unidad_funcional.importar_uf_cbu
      @RutaArchivo = N'$(BasePath)Inquilino-propietarios-UF.csv';
 PRINT '';
 
 -- 7. Personas
 PRINT '7. Importando Inquilinos y Propietarios...';
-EXEC persona.ImportarInquilinosPropietarios 
+EXEC persona.importar_inquilinos_propietarios
     @RutaArchivo = N'$(BasePath)Inquilino-propietarios-datos.csv';
 PRINT '';
 
@@ -86,13 +86,13 @@ BEGIN
 END
 GO
 
-EXEC banco.ImportarYConciliarPagos
-    @RutaArchivo = N'$(BasePath)pagos_consorcios.csv', -- $(BasePath) sigue funcionando aquí
+EXEC banco.importar_conciliar_pagos
+    @RutaArchivo = N'$(BasePath)pagos_consorcios.csv',
     @IdCuentaDestino = 1;
 PRINT '';
 
 -- 9. LLENAR Y SIMULAR EXPENSAS
-EXEC expensa.LlenarExpensas
+EXEC expensa.llenar_expensas
 PRINT '';
 
 PRINT '=== FIN DE IMPORTACIONES ===';
@@ -108,7 +108,6 @@ select * from banco.banco_movimiento
 select * from banco.pago
 
 select * from expensa.gasto
-select * from expensa.gasto_item
 select * from expensa.sub_tipo_gasto
 select * from expensa.tipo_gasto
 select * from expensa.periodo
@@ -126,5 +125,4 @@ select * from unidad_funcional.uf_cuenta
 select * from unidad_funcional.uf_persona_vinculo
 select * from unidad_funcional.unidad_funcional
 */
-
 

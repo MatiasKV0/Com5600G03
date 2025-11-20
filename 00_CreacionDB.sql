@@ -117,8 +117,8 @@ CREATE TABLE unidad_funcional.unidad_funcional (
     uf_id INT IDENTITY(1,1) PRIMARY KEY,
     consorcio_id INT NOT NULL,
     codigo VARCHAR(50) NOT NULL,
-    piso VARCHAR(20),
-    depto VARCHAR(20),
+    piso CHAR(3),
+    depto CHAR(3),
     superficie_m2 NUMERIC(12,2) CHECK (superficie_m2 >= 0),
     porcentaje NUMERIC(7,4) CHECK (porcentaje >= 0 AND porcentaje <= 100),
     FOREIGN KEY (consorcio_id) REFERENCES administracion.consorcio(consorcio_id),
@@ -293,16 +293,6 @@ CREATE TABLE expensa.gasto (
 CREATE INDEX IX_gasto_periodo ON expensa.gasto(periodo_id, consorcio_id);
 CREATE INDEX IX_gasto_tipo ON expensa.gasto(tipo_id, sub_id);
 CREATE INDEX IX_gasto_proveedor ON expensa.gasto(proveedor_id);
-
--- Tabla gasto_item
-CREATE TABLE expensa.gasto_item (
-    item_id INT IDENTITY(1,1) PRIMARY KEY,
-    gasto_id INT NOT NULL,
-    concepto VARCHAR(200),
-    cantidad NUMERIC(10,2) CHECK (cantidad > 0),
-    importe NUMERIC(14,2) NOT NULL,
-    FOREIGN KEY (gasto_id) REFERENCES expensa.gasto(gasto_id)
-);
 
 -- Tabla estado_financiero
 CREATE TABLE expensa.estado_financiero (

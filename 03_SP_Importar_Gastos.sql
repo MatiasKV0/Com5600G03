@@ -17,7 +17,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03
 GO
 
-CREATE OR ALTER PROCEDURE administracion.CargarTipoGastos
+CREATE OR ALTER PROCEDURE administracion.cargar_tipo_gastos
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -70,7 +70,7 @@ GO
 ----------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------
 
-CREATE OR ALTER PROCEDURE administracion.CargarProveedores
+CREATE OR ALTER PROCEDURE administracion.cargar_proveedores
     @RutaArchivo NVARCHAR(400)
 AS
 BEGIN 
@@ -159,7 +159,7 @@ GO
 ----------------------------------------------------------------------------------
 
 -- IMPORTAR GASTOS DESDE JSON.
-CREATE OR ALTER PROCEDURE administracion.ImportarGastos
+CREATE OR ALTER PROCEDURE administracion.importar_gastos
     @RutaArchivo NVARCHAR(400)
 AS
 BEGIN
@@ -307,7 +307,7 @@ BEGIN
 END;
 GO
 
-CREATE OR ALTER PROCEDURE administracion.CrearPeriodos
+CREATE OR ALTER PROCEDURE administracion.crear_periodos
     @Anio SMALLINT
 AS
 BEGIN

@@ -29,7 +29,7 @@ GO
 ----------------------------------------------------------------
 -- 1. expensa.Reporte_RecaudacionSemanal
 ----------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionSemanal
+CREATE OR ALTER PROCEDURE expensa.reporte_recaudacion_semanal
     @FechaInicio DATE = NULL,
     @FechaFin DATE = NULL,
     @ConsorcioId INT = NULL
@@ -76,12 +76,12 @@ BEGIN
 END;
 GO 
 
-PRINT 'SP expensa.Reporte_RecaudacionSemanal modificado.';
+PRINT 'SP expensa.reporte_recaudacion_semanal modificado.';
 GO 
 ----------------------------------------------------------------
 -- 2. expensa.Reporte_RecaudacionMesDepartamentos
 ----------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionMesDepartamentos
+CREATE OR ALTER PROCEDURE expensa.reporte_recaudacion_mes_departamento
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
     @MesInicio INT = 1,
@@ -122,12 +122,12 @@ BEGIN
 END;
 GO 
 
-PRINT 'SP expensa.Reporte_RecaudacionMesDepartamentos modificado.';
+PRINT 'SP expensa.reporte_recaudacion_mes_departamento modificado.';
 GO 
 ----------------------------------------------------------------
 -- 3. expensa.Reporte_RecaudacionPorTipoPeriodo
 ----------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionPorTipoPeriodo
+CREATE OR ALTER PROCEDURE expensa.reporte_recudacion_tipo_periodo
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
     @TipoPago VARCHAR(20) = NULL
@@ -155,13 +155,13 @@ BEGIN
 END;
 GO 
 
-PRINT 'SP expensa.Reporte_RecaudacionPorTipoPeriodo modificado.';
+PRINT 'SP expensa.reporte_recudacion_tipo_periodo modificado.';
 GO 
 
 ----------------------------------------------------------------
 -- 4. expensa.Reporte_TopMesesGastosIngresos
 -----------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_TopMesesGastosIngresos
+CREATE OR ALTER PROCEDURE expensa.reporte_top_gastos_ingresos
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
     @TopN INT = 5
@@ -202,12 +202,12 @@ BEGIN
 END;
 GO 
 
-PRINT 'SP expensa.Reporte_TopMesesGastosIngresos modificado.';
+PRINT 'SP expensa.reporte_top_gastos_ingresos modificado.';
 GO
 ----------------------------------------------------------------------
--- 5. expensa.Reporte_Top3Morosos
+-- 5. expensa.reporte_top_morosos
 ----------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_Top3Morosos
+CREATE OR ALTER PROCEDURE expensa.reporte_top_morosos
     @ConsorcioId INT,
     @TopN INT,
     @Rol VARCHAR(50) = 'PROPIETARIO'
@@ -252,12 +252,12 @@ BEGIN
 END;
 GO 
 
-PRINT 'SP expensa.Reporte_Top3Morosos modificado.';
+PRINT 'SP expensa.reporte_top_morosos modificado.';
 GO
 ----------------------------------------------------------------------
 -- 6. expensa.Reporte_FechasPagosUF 
 ----------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_FechasPagosUF
+CREATE OR ALTER PROCEDURE expensa.reporte_fechas_pagos_uf
     @ConsorcioId INT,
     @UFCodigo INT,
     @TipoPago VARCHAR(50)
@@ -283,12 +283,12 @@ BEGIN
 END;
 GO 
 
-PRINT 'SP expensa.Reporte_FechasPagosUF modificado y corregido.';
+PRINT 'SP expensa.reporte_fechas_pagos_uf modificado y corregido.';
 GO 
 -------------------------------------------------------------------------
--- 7. expensa.Reporte7_DeudaPeriodo_ARS_USD
+-- 7. expensa.reporte_deuda_periodo_usd
 -------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte7_DeudaPeriodo_ARS_USD
+CREATE OR ALTER PROCEDURE expensa.reporte_deuda_periodo_usd
     @ConsorcioId INT = NULL,
     @Anio INT = NULL,
     @Mes INT = NULL
@@ -396,37 +396,37 @@ GO
 PRINT '--- Firmando SPs de Reportes ---';
 GO
 
-ADD SIGNATURE TO expensa.Reporte_RecaudacionSemanal
+ADD SIGNATURE TO expensa.reporte_recaudacion_semanal
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte_RecaudacionSemanal firmado.';
 GO
 
-ADD SIGNATURE TO expensa.Reporte_RecaudacionMesDepartamentos
+ADD SIGNATURE TO expensa.reporte_recaudacion_mes_departamento
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte_RecaudacionMesDepartamentos firmado.';
 GO
 
-ADD SIGNATURE TO expensa.Reporte_RecaudacionPorTipoPeriodo
+ADD SIGNATURE TO expensa.reporte_recudacion_tipo_periodo
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte_RecaudacionPorTipoPeriodo firmado.';
 GO
 
-ADD SIGNATURE TO expensa.Reporte_TopMesesGastosIngresos
+ADD SIGNATURE TO expensa.reporte_top_gastos_ingresos
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte_TopMesesGastosIngresos firmado.';
 GO
 
-ADD SIGNATURE TO expensa.Reporte_Top3Morosos
+ADD SIGNATURE TO expensa.reporte_top_morosos
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte_Top3Morosos firmado.';
 GO
 
-ADD SIGNATURE TO expensa.Reporte_FechasPagosUF
+ADD SIGNATURE TO expensa.reporte_fechas_pagos_uf
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte_FechasPagosUF firmado.';
 GO
 
-ADD SIGNATURE TO expensa.Reporte7_DeudaPeriodo_ARS_USD
+ADD SIGNATURE TO expensa.reporte_deuda_periodo_usd
 BY CERTIFICATE CertParaDatosSensibles;
 PRINT 'SP expensa.Reporte7_DeudaPeriodo_ARS_USD firmado.';
 GO

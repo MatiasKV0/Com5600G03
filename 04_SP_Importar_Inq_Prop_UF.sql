@@ -17,7 +17,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03;
 GO
 
-CREATE OR ALTER PROCEDURE unidad_funcional.ImportarUnidadesFuncionales
+CREATE OR ALTER PROCEDURE unidad_funcional.importar_uf_cbu
     @RutaArchivo NVARCHAR(500)
 AS
 BEGIN

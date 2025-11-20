@@ -19,7 +19,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03;
 GO
 
-CREATE OR ALTER PROCEDURE administracion.ImportarArchivoUF
+CREATE OR ALTER PROCEDURE administracion.importar_uf
     @RutaArchivo NVARCHAR(400)
 AS
 BEGIN
@@ -132,7 +132,6 @@ BEGIN
         uf.uf_id,
         CONCAT('B-', LTRIM(RTRIM(p.NroUF))) AS codigo,
         CAST(p.M2Baulera AS NUMERIC(12,2)),
-        
         CAST(p.Coeficiente AS NUMERIC(7,4)) AS porcentaje
 
     FROM #uf_procesadas p

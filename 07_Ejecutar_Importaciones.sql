@@ -25,6 +25,10 @@ PRINT '=== INICIO DE IMPORTACIONES ===';
 PRINT '';
 
 -- 1. Consorcios
+-- Esperado:
+--   - Se importan todos los consorcios que no existan previamente.
+--   - Si no existe, se crea la administración base 'Administración General'.
+--   - No deben generarse errores de PK/UNIQUE.
 PRINT '1. Importando Consorcios...';
 EXEC administracion.importar_consorcios 
     @RutaArchivo = N'$(BasePath)datos varios(Consorcios).csv';

@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador - ENTREGA 7
-Comisión: 5600
+Trabajo PrÃ¡ctico Integrador - ENTREGA 7
+ComisiÃ³n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -18,7 +18,7 @@ USE Com5600G03;
 GO
 
 
-PRINT '=== INICIO DE IMPLEMENTACIÓN DE CIFRADO ===';
+PRINT '=== INICIO DE IMPLEMENTACIÃ“N DE CIFRADO ===';
 GO
 
 ALTER TABLE persona.persona
@@ -188,7 +188,7 @@ BEGIN
     SET NOCOUNT ON;
 
     IF @FraseClave <> N'MiClaveSegura2025$'
-        THROW 50000, 'Frase clave incorrecta.', 1;
+         PRINT 'Frase clave incorrecta.';
 
     SELECT 
         persona_id,
@@ -213,8 +213,7 @@ BEGIN
     SET NOCOUNT ON;
 
     IF @FraseClave <> N'MiClaveSegura2025$'
-        THROW 50000, 'Frase clave incorrecta.', 1;
-
+        PRINT 'Frase clave incorrecta.';
     SELECT 
         contacto_id,
         persona_id,
@@ -237,7 +236,7 @@ BEGIN
     SET NOCOUNT ON;
 
     IF @FraseClave <> N'MiClaveSegura2025$'
-        THROW 50000, 'Frase clave incorrecta.', 1;
+        PRINT 'Frase clave incorrecta.';
 
     SELECT 
         cuenta_id,

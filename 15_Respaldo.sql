@@ -1,6 +1,9 @@
 /*
 ------------------------------------------------------------
 Trabajo Práctico Integrador - ENTREGA 7
+Enunciado: Definición de política de backup, programación y RPO
+           para la base de datos Com5600G03.
+Fecha de entrega: 2025-11-XX
 Comisión: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
@@ -12,53 +15,75 @@ Oliveti Lautaro Nahuel        - lautioliveti    - 43863497
 Mamani Estrada Lucas Gabriel  - lucasGME        - 43624305
 Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
-
-/*
-
---------------------------------------------------
-				Politica de Respaldo
---------------------------------------------------
-
-Con el fin de mantener protegida la informacion del sistema de expensas y asegurar que pueda recuperarse ante fallos o errores,
-se propone una politica de respaldo que combina distintos tipos de copias segun el nivel de detalle que se necesite en cada momento. 
-La idea es contar con un esquema equilibrado, que permita restaurar la base de datos sin pérdida significativa de informacion 
-y sin afectar el rendimiento general del sistema durante su uso diario.
-
---------------------------------------------------
-			 Frecuencia de los Backups 
---------------------------------------------------
-
-El plan contempla tres tipos de respaldos:
-
-	Backup Completo (FULL): se realizara una vez por semana, idealmente los domingos entre las 02:00 y las 03:00 AM,
-	cuando no hay actividad. Este respaldo guarda toda la base de datos y sirve como punto principal de recuperacion.
-
-	Backup Diferencial: se ejecutara todos los dias alrededor de las 03:00 AM. Este respaldo registra unicamente 
-	lo que cambio desde el ultimo FULL, por lo que reduce tiempo y espacio respecto a repetir la copia completa diariamente.
-
-	Backup del Log de Transacciones: se tomara cada 1 hora dentro del horario laboral, por ejemplo 
-	entre las 08:00 y las 20:00. Esto permite conservar un historial muy reciente de operaciones y facilita 
-	regresar a un estado cercano en caso de algun fallo.
-
---------------------------------------------------
-				Definicion del RPO
---------------------------------------------------
-
-A partir de este esquema, el punto maximo aceptable de perdida de datos (RPO) se establece en 1 hora. 
-Esto implica que, en caso de un fallo inesperado, como maximo se perderia la informacion generada en la ultima hora.
-Es un valor adecuado para el sistema del consorcio, donde la mayoria de las operaciones relevantes se cargan en momentos
-puntuales del dia y no de forma continua.
-
---------------------------------------------------
-			 Motivos de la Eleccion 
---------------------------------------------------
-
-La combinacion de un FULL semanal, diferenciales diarios y logs frecuentes permite un equilibrio
-entre seguridad y eficiencia. Los FULL permiten tener una copia completa sin cargar de mas al servidor, 
-los diferenciales aceleran la restauracion y reducen la cantidad de archivos necesarios, 
-y los respaldos del log permiten reconstruir la informacion mas reciente sin perder operaciones importantes.
-Ademas, mantener copias en un medio externo ayuda a protegerse frente a fallas fisicas del servidor o situaciones imprevistas.
-Todo este esquema permite volver a la actividad normal rapidamente y con minimos riesgos de perdida de datos.
-
-
 */
+
+-- POLÍTICA DE BACKUP PARA Com5600G03
+-- Nota: no se requiere código de BACKUP en T-SQL, solo la definición
+--       de la política, la programación (schedule) y el RPO.
+
+-- 1) Objetivo general
+--    Proteger la base de datos Com5600G03 frente a fallos lógicos,
+--    errores de usuario y fallos de infraestructura, minimizando
+--    la pérdida de datos y el tiempo de recuperación.
+
+-- 2) Tipo de respaldos definidos
+--    a) Backup FULL de base de datos
+--    b) Backup DIFERENCIAL de base de datos
+--    c) Backup de LOG de transacciones
+
+-- 3) Política de ejecución
+
+-- 3.1) BACKUP FULL
+--      - Frecuencia: semanal
+--      - Día: domingo
+--      - Horario: 02:00 – 03:00 AM
+--      - Justificación: horario de baja actividad y referencia
+--        completa para diferenciales y logs.
+
+-- 3.2) BACKUP DIFERENCIAL
+--      - Frecuencia: diaria
+--      - Días: lunes a sábado
+--      - Horario: 03:00 AM
+--      - Justificación: permite acotar el número de archivos de log
+--        necesarios para una restauración y reduce la ventana de
+--        exposición desde el último FULL.
+
+-- 3.3) BACKUP DE LOG DE TRANSACCIONES
+--      - Frecuencia: cada 1 hora
+--      - Días: lunes a domingo
+--      - Horario: de 08:00 a 20:00
+--      - Justificación: durante el horario de mayor movimiento se
+--        reduce la posible pérdida de datos a una hora como máximo.
+
+-- 4) RPO (Recovery Point Objective)
+--    - Se define un RPO de 1 hora.
+--    - Esto significa que, ante un incidente grave, la pérdida máxima
+--      de datos aceptable es la correspondiente al intervalo entre
+--      dos backups de log consecutivos (1 hora).
+--    - Con la combinación FULL + DIFERENCIAL + LOG se puede recuperar
+--      la base hasta un punto en el tiempo dentro de esa ventana.
+
+-- 5) RTO (Recovery Time Objective) - opcionalmente documentado
+--    - No se solicita explícitamente en el enunciado, pero se deja
+--      como referencia que el diseño de la política apunta a un RTO
+--      razonable (en el orden de pocas horas) dada la necesidad de:
+--        * Restaurar último FULL
+--        * Aplicar último DIFERENCIAL disponible
+--        * Aplicar secuencia de LOGs hasta el punto deseado
+
+-- 6) Resumen de programación (Schedule)
+
+--    - Backup FULL:
+--        * Domingos a las 02:00 AM
+
+--    - Backup DIFERENCIAL:
+--        * Lunes a sábado a las 03:00 AM
+
+--    - Backup LOG:
+--        * Todos los días, cada 1 hora, de 08:00 a 20:00
+
+-- 7) Observaciones finales
+--    - Los backups se almacenan en un medio distinto al disco de datos,
+--      con retención suficiente para cubrir al menos 4 semanas de historia.
+--    - Es recomendable probar periódicamente el procedimiento de
+--      restauración en un entorno de pruebas para validar el plan.

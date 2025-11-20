@@ -21,14 +21,14 @@ USE Com5600G03
 GO
 
 --REPORTE 1 
-EXEC expensa.Reporte_RecaudacionSemanal
-    @FechaInicio = '2025-01-01',
+EXEC expensa.reporte_recaudacion_semanal
+    @FechaInicio = '2025-04-04',
     @FechaFin = '2025-05-05',
     @ConsorcioId = 1;
 GO
 
 --REPORTE 2
-EXEC expensa.Reporte_RecaudacionMesDepartamentos
+EXEC expensa.reporte_recaudacion_mes_departamento
     @Anio = 2025,
     @ConsorcioId = 2,
     @MesInicio = 1,
@@ -36,35 +36,35 @@ EXEC expensa.Reporte_RecaudacionMesDepartamentos
 GO
 
 --REPORTE 3
-EXEC expensa.Reporte_RecaudacionPorTipoPeriodo
+EXEC expensa.reporte_recudacion_tipo_periodo
     @Anio = 2025,
     @ConsorcioId = 3,
     @TipoPago = 'ORDINARIO';   --COLOCAR 'ORDINARIO' O 'EXTRAORDINARIO'
 GO
 
 -- REPORTE 4
-EXEC expensa.Reporte_TopMesesGastosIngresos
+EXEC expensa.reporte_top_gastos_ingresos
     @Anio = 2025,
     @ConsorcioId = 1,
-    @TopN = 5;
+    @TopN = 3;
 GO
 
 -- REPORTE 5
-EXEC expensa.Reporte_Top3Morosos
-    @ConsorcioId = 1,
-    @TopN = 3,
+EXEC expensa.reporte_top_morosos
+    @ConsorcioId = 5,
+    @TopN = 5,
     @Rol = 'PROPIETARIO'
 GO
 
 -- REPORTE 6
-EXEC expensa.Reporte_FechasPagosUF
+EXEC expensa.reporte_fechas_pagos_uf
     @ConsorcioId = 1,
     @UFCodigo = 1,
     @TipoPago = 'ORDINARIO'
 GO
 
 -- REPORTE 7
-EXEC expensa.Reporte7_DeudaPeriodo_ARS_USD
+EXEC expensa.reporte_deuda_periodo_usd
     @ConsorcioId = 2,
     @Anio = 2025,
     @Mes = 4;

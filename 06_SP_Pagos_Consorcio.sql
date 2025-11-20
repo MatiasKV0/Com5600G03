@@ -17,7 +17,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03;
 GO
 
-CREATE OR ALTER PROCEDURE banco.ImportarYConciliarPagos
+CREATE OR ALTER PROCEDURE banco.importar_conciliar_pagos
     @RutaArchivo NVARCHAR(500),
     @IdCuentaDestino INT
 AS
@@ -157,11 +157,12 @@ GO
 -----------------------------------------------------------------------
 ----LLENAR EXPENSAS Y SIMULAR DEUDA
 ----------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.LlenarExpensas
+CREATE OR ALTER PROCEDURE expensa.llenar_expensas
 AS
 BEGIN
     SET NOCOUNT ON;
-    
+	
+	BEGIN TRY 
     INSERT INTO expensa.expensa_uf (
         periodo_id,
         uf_id,
@@ -305,6 +306,9 @@ BEGIN
         eu.interes_mora
     FROM expensa.expensa_uf eu
     WHERE eu.interes_mora > 0;
-
+	END TRY
+	BEGIN CATCH
+	 print 'Este SP se ejecuto anteriormente'
+	END CATCH	
 END;
 GO

@@ -25,7 +25,7 @@ GO
 -- Se desea analizar el flujo de caja en forma semanal. Debe presentar la recaudación por pagos ordinarios y extraordinarios de cada semana, 
 -- el promedio en el periodo, y el acumulado progresivo.  
 
-CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionSemanal
+CREATE OR ALTER PROCEDURE expensa.reporte_recaudacion_semanal
     @FechaInicio DATE = NULL,
     @FechaFin DATE = NULL,
     @ConsorcioId INT = NULL
@@ -96,7 +96,7 @@ GO
 --REPORTE 2
 --Presente el total de recaudación por mes y departamento en formato de tabla cruzada.
 --------------------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionMesDepartamentos
+CREATE OR ALTER PROCEDURE expensa.reporte_recaudacion_mes_departamento
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
     @MesInicio INT = 1,
@@ -159,7 +159,7 @@ GO
 --según su procedencia (ordinario, extraordinario, etc.) según el periodo. 
 ---------------------------------------------------------------------------------
 
-CREATE OR ALTER PROCEDURE expensa.Reporte_RecaudacionPorTipoPeriodo
+CREATE OR ALTER PROCEDURE expensa.reporte_recudacion_tipo_periodo
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
     @TipoPago VARCHAR(20) = NULL
@@ -195,7 +195,7 @@ GO
 ----------------------------------------------------------------------------------------
 -- REPORTE 4: Obtenga los 5 (cinco) meses de mayores gastos y los 5 (cinco) de mayores ingresos.  
 -----------------------------------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte_TopMesesGastosIngresos
+CREATE OR ALTER PROCEDURE expensa.reporte_top_gastos_ingresos
     @Anio INT = NULL,
     @ConsorcioId INT = NULL,
     @TopN INT = 5
@@ -279,7 +279,7 @@ GO
 
 --Obtenga los 3 (tres) propietarios con mayor morosidad--
 
-CREATE OR ALTER PROCEDURE expensa.Reporte_Top3Morosos
+CREATE OR ALTER PROCEDURE expensa.reporte_top_morosos
     @ConsorcioId INT,
     @TopN INT,
     @Rol VARCHAR(50) = 'PROPIETARIO'
@@ -337,7 +337,7 @@ GO
  pasan entre un pago y el siguiente, para el conjunto examinado.*/
 
 
-CREATE OR ALTER PROCEDURE expensa.Reporte_FechasPagosUF
+CREATE OR ALTER PROCEDURE expensa.reporte_fechas_pagos_uf
     @ConsorcioId INT,
     @UFCodigo INT,
     @TipoPago VARCHAR(50)
@@ -378,7 +378,7 @@ GO
 ------------------------------------------------------------
 --  REPORTE 7 Deudas anteriores y totales de UF en pesos y dolares
 ------------------------------------------------------------
-CREATE OR ALTER PROCEDURE expensa.Reporte7_DeudaPeriodo_ARS_USD
+CREATE OR ALTER PROCEDURE expensa.reporte_deuda_periodo_usd
     @ConsorcioId INT = NULL,
     @Anio INT = NULL,
     @Mes INT = NULL

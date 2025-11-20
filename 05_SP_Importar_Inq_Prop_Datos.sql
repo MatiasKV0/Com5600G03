@@ -17,7 +17,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03;
 GO
 
-CREATE OR ALTER PROCEDURE persona.ImportarInquilinosPropietarios
+CREATE OR ALTER PROCEDURE persona.importar_inquilinos_propietarios
     @RutaArchivo NVARCHAR(500)
 AS
 BEGIN
@@ -60,7 +60,7 @@ BEGIN
     ------------------------------------------------------------
     INSERT INTO persona.persona (nombre_completo, tipo_doc, nro_doc)
     SELECT
-        MAX(TRIM(ISNULL(nombre, '') + ' ' + ISNULL(apellido, ''))) AS nombre_completo,
+        MAX(UPPER(RTRIM(TRIM(ISNULL(nombre, '')) +' '+ RTRIM(LTRIM(ISNULL(apellido, '')))))) AS nombre_completo,
         'DNI',
         dni
     FROM #InquilinosPropietarios i
@@ -79,14 +79,14 @@ BEGIN
     SELECT 
         p.persona_id,
         'email',
-        i.email_personal,
+        LOWER(RTRIM(LTRIM((i.email_personal)))),
         1
     FROM #InquilinosPropietarios i
     JOIN persona.persona p ON p.nro_doc = i.dni
     WHERE NOT EXISTS (
         SELECT 1 FROM persona.persona_contacto c 
         WHERE c.persona_id = p.persona_id AND c.valor = i.email_personal
-    );
+	);
 
     INSERT INTO persona.persona_contacto (persona_id, tipo, valor, es_preferido)
     SELECT 

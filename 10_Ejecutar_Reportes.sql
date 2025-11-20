@@ -65,7 +65,7 @@ GO
 
 -- REPORTE 7
 EXEC expensa.reporte_deuda_periodo_usd
-    @ConsorcioId = 2,
+    @ConsorcioId = 4,
     @Anio = 2025,
-    @Mes = 4;
+    @Mes = 5;
 GO

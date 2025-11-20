@@ -116,7 +116,7 @@ GO
 ------------------------------------------------------------------
 PRINT '=== REPORTE 7: Deuda del período en USD ===';
 EXEC expensa.reporte_deuda_periodo_usd
-    @ConsorcioId = 2,
-    @Anio        = 2025,
-    @Mes         = 4;
+    @ConsorcioId = 4,
+    @Anio = 2025,
+    @Mes = 5;
 GO

@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Práctico Integrador - ENTREGA 5
-Comisión: 5600
+Trabajo Prï¿½ctico Integrador - ENTREGA 5
+Comisiï¿½n: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -14,7 +14,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
 */
 
-----CREACIÓN DE LA BASE DE DATOS
+----CREACIï¿½N DE LA BASE DE DATOS
 
 USE master;
 GO
@@ -38,7 +38,7 @@ PRINT 'Base de datos Com5600G03 creada correctamente';
 GO
 
 ----------------------------------------------------------------
--- CREACIÓN DE ESQUEMAS
+-- CREACIï¿½N DE ESQUEMAS
 ----------------------------------------------------------------
 CREATE SCHEMA administracion;
 GO
@@ -55,7 +55,7 @@ PRINT 'Esquemas creados correctamente';
 GO
 
 ----------------------------------------------------------------
--- TABLAS DE ADMINISTRACIÓN
+-- TABLAS DE ADMINISTRACIï¿½N
 ----------------------------------------------------------------
 
 -- Tabla administracion
@@ -92,7 +92,7 @@ CREATE TABLE administracion.cuenta_bancaria (
     CONSTRAINT UQ_cuenta_cbu UNIQUE (cbu_cvu)
 );
 
--- Tabla relación consorcio-cuenta
+-- Tabla relaciï¿½n consorcio-cuenta
 CREATE TABLE administracion.consorcio_cuenta_bancaria (
     consorcio_cuenta_id INT IDENTITY(1,1) PRIMARY KEY,
     consorcio_id INT NOT NULL,
@@ -105,7 +105,7 @@ CREATE TABLE administracion.consorcio_cuenta_bancaria (
 
 CREATE INDEX IX_consorcio_cuenta_principal ON administracion.consorcio_cuenta_bancaria(consorcio_id, es_principal) WHERE es_principal = 1;
 
-PRINT 'Tablas de administración creadas';
+PRINT 'Tablas de administraciï¿½n creadas';
 GO
 
 ----------------------------------------------------------------
@@ -201,7 +201,7 @@ CREATE TABLE unidad_funcional.uf_persona_vinculo (
     rol VARCHAR(20) NOT NULL CHECK (rol IN ('PROPIETARIO', 'INQUILINO', 'RESPONSABLE')),
     fecha_desde DATE NOT NULL DEFAULT GETDATE(),
     fecha_hasta DATE,
-    medio_envio_preferido VARCHAR(20) CHECK (medio_envio_preferido IN ('EMAIL', 'WHATSAPP', 'IMPRESO')),
+    medio_envio_preferido VARCHAR(20) CHECK (medio_envio_preferido IN ('EMAIL', 'WHATSAPP', 'IMPRESO')) DEFAULT 'EMAIL',
     FOREIGN KEY (uf_id) REFERENCES unidad_funcional.unidad_funcional(uf_id),
     FOREIGN KEY (persona_id) REFERENCES persona.persona(persona_id),
     CONSTRAINT CK_uf_persona_fechas CHECK (fecha_hasta IS NULL OR fecha_hasta > fecha_desde)

@@ -73,20 +73,8 @@ PRINT '';
 
 -- 8. Pagos
 PRINT '8. Importando Pagos';
-
-IF NOT EXISTS (
-    SELECT 1 FROM administracion.consorcio_cuenta_bancaria 
-    WHERE consorcio_id = 1 AND cuenta_id = 1
-)
-BEGIN
-    INSERT INTO administracion.consorcio_cuenta_bancaria (consorcio_id, cuenta_id, es_principal)
-    VALUES (1, 1, 1);
-END
-GO
-
 EXEC banco.importar_conciliar_pagos
-    @RutaArchivo = N'$(BasePath)pagos_consorcios.csv',
-    @IdCuentaDestino = 1;
+    @RutaArchivo = N'$(BasePath)pagos_consorcios.csv';
 PRINT '';
 
 -- 9. LLENAR Y SIMULAR EXPENSAS
@@ -117,10 +105,10 @@ select * from expensa.expensa_uf_interes
 select * from persona.persona
 select * from persona.persona_contacto
 
+select * from unidad_funcional.unidad_funcional
 select * from unidad_funcional.baulera
 select * from unidad_funcional.cochera
 select * from unidad_funcional.uf_cuenta
 select * from unidad_funcional.uf_persona_vinculo
-select * from unidad_funcional.unidad_funcional
 */
 

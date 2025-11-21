@@ -226,8 +226,6 @@ ORDER BY SCHEMA_NAME(p.schema_id), p.name;
 USE master; -- Se trabaja a nivel de servidor (Logins)
 GO
 
-GRANT ADMINISTER BULK OPERATIONS TO Test_AdmBancario;
-
 PRINT '--- 1. Creación de Logins (Inicios de Sesión) ---';
 
 IF EXISTS (SELECT name FROM sys.server_principals WHERE name = 'Test_AdmGeneral')
@@ -320,40 +318,80 @@ GO
 PRINT 'Los Logins y Usuarios han sido creados correctamente y los roles asignados.';
 
 
-
 /*
--- 1. Consorcios
+TESTING 
+-Test_Sistemas
+
+USE Com5600G03;
+GO
+
+DENY:
 EXEC administracion.importar_consorcios 
     @RutaArchivo = 'C:\_temp\datos varios(Consorcios).csv';
 
--- 2. Unidades Funcionales
+DENY:
 EXEC administracion.importar_uf
     @RutaArchivo = N'C:\_temp\UF por consorcio.txt';
 
+GRANT:
+EXEC expensa.reporte_recaudacion_mes_departamento
+    @Anio        = 2025,
+    @ConsorcioId = 2,
+    @MesInicio   = 1,
+    @MesFin      = 6;
 
--- 3. Tipos de Gasto
-EXEC administracion.cargar_tipo_gastos;
+TESTING
+-Test_AdmOperativo
 
-EXEC administracion.crear_periodos @Anio = 2026;
+USE Com5600G03;
+GO
 
--- 4. Proveedores
-EXEC administracion.cargar_proveedores
-    @RutaArchivo = N'C:\_temp\datos varios(Proveedores).csv';
-
--- 5. Gastos
-EXEC administracion.importar_gastos
-    @RutaArchivo = N'C:\_temp\Servicios.Servicios.json';
-
--- 6. Cuentas
-EXEC unidad_funcional.importar_uf_cbu
-     @RutaArchivo = N'C:\_temp\Inquilino-propietarios-UF.csv';
-
--- 7. Personas
-EXEC persona.importar_inquilinos_propietarios
-    @RutaArchivo = N'C:\_temp\Inquilino-propietarios-datos.csv';
-
--- 8. Pagos
+DENY:
 EXEC banco.importar_conciliar_pagos
     @RutaArchivo = N'C:\_temp\pagos_consorcios.csv',
     @IdCuentaDestino = 1;
+
+GRANT:
+EXEC administracion.cargar_tipo_gastos;
+
+TESTING
+-Test_AdmBancario
+
+USE Com5600G03;
+GO
+
+DENY:
+EXEC administracion.crear_periodos @Anio = 2026;
+
+DENY:
+EXEC administracion.cargar_proveedores
+    @RutaArchivo = N'C:\_temp\datos varios(Proveedores).csv';
+
+GRANT:
+EXEC banco.importar_conciliar_pagos
+    @RutaArchivo = N'C:\_temp\pagos_consorcios.csv',
+    @IdCuentaDestino = 1;
+
+TESTING
+-Test_AdmGeneral
+
+USE Com5600G03;
+GO
+
+DENY:
+EXEC administracion.importar_gastos
+    @RutaArchivo = N'C:\_temp\Servicios.Servicios.json';
+
+DENY:
+EXEC banco.importar_conciliar_pagos
+    @RutaArchivo = N'C:\_temp\pagos_consorcios.csv',
+    @IdCuentaDestino = 1;
+
+GRANT:
+EXEC unidad_funcional.importar_uf_cbu
+     @RutaArchivo = N'C:\_temp\Inquilino-propietarios-UF.csv';
+
+GRANT:
+EXEC persona.importar_inquilinos_propietarios
+    @RutaArchivo = N'C:\_temp\Inquilino-propietarios-datos.csv';
 */

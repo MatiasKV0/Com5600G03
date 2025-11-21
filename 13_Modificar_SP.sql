@@ -17,9 +17,6 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 USE Com5600G03;
 GO
 
-PRINT '=== INICIO DE MODIFICACIÓN DE TODOS LOS SP PARA CIFRADO ===';
-GO
-
 ------------------------------------------------------------
 -- SP MODIFICADO: importar_consorcios
 ------------------------------------------------------------
@@ -502,23 +499,22 @@ GO
 -- SP MODIFICADO: importar_conciliar_pagos
 ------------------------------------------------------------
 CREATE OR ALTER PROCEDURE banco.importar_conciliar_pagos
-    @RutaArchivo NVARCHAR(500),
-    @IdCuentaDestino INT
+    @RutaArchivo NVARCHAR(500)
 AS
 BEGIN
     SET NOCOUNT ON;
 
     DECLARE @consorcio_id INT;
-    SELECT @consorcio_id = consorcio_id 
-    FROM administracion.consorcio_cuenta_bancaria 
-    WHERE cuenta_id = @IdCuentaDestino;
+    DECLARE @cuenta_id_destino INT;
 
-    IF @consorcio_id IS NULL
-    BEGIN
-        PRINT 'Error: El ID de cuenta destino ' + CAST(@IdCuentaDestino AS VARCHAR) + ' no está vinculado a un consorcio.';
-        PRINT 'Por favor, ejecute el INSERT en [administracion.consorcio_cuenta_bancaria] primero.';
+    SELECT TOP 1
+        @consorcio_id = consorcio_id,
+        @cuenta_id_destino = cuenta_id
+    FROM administracion.consorcio_cuenta_bancaria
+    ORDER BY cuenta_id DESC;
+
+    IF @consorcio_id IS NULL OR @cuenta_id_destino IS NULL
         RETURN -1;
-    END;
 
     IF OBJECT_ID('tempdb..#PagosCSV') IS NOT NULL DROP TABLE #PagosCSV;
     CREATE TABLE #PagosCSV (
@@ -542,15 +538,12 @@ BEGIN
     
     BEGIN TRY
         EXEC (@SQL);
-        PRINT 'CSV de pagos cargado correctamente.';
     END TRY
     BEGIN CATCH
-        PRINT 'Error al cargar el CSV: ' + ERROR_MESSAGE();
         DROP TABLE #PagosCSV;
         RETURN -1;
     END CATCH;
 
-    -- Procesar pagos usando HASH para buscar cuentas
     IF OBJECT_ID('tempdb..#PagosProcesados') IS NOT NULL DROP TABLE #PagosProcesados;
     SELECT
         ufc.uf_id, 
@@ -566,9 +559,8 @@ BEGIN
     LEFT JOIN administracion.cuenta_bancaria cb 
         ON cb.cbu_cvu_Hash = HASHBYTES('SHA2_256', LTRIM(RTRIM(csv.cbu_origen)))
     LEFT JOIN unidad_funcional.uf_cuenta ufc 
-        ON cb.cuenta_id = ufc.cuenta_id AND ufc.fecha_hasta IS NULL; 
+        ON cb.cuenta_id = ufc.cuenta_id; 
         
-    -- Insertar movimientos bancarios
     DECLARE @MovimientosInsertados TABLE (
         movimiento_id INT,
         cbu_origen VARCHAR(40),
@@ -592,7 +584,7 @@ BEGIN
     INTO @MovimientosInsertados
     SELECT
         @consorcio_id,
-        @IdCuentaDestino,
+        @cuenta_id_destino,
         p.cbu_origen,
         p.fecha_pago,
         p.importe_pago,
@@ -603,15 +595,12 @@ BEGIN
         AND p.fecha_pago IS NOT NULL
         AND NOT EXISTS (
             SELECT 1 FROM banco.banco_movimiento bm
-            WHERE bm.cuenta_id = @IdCuentaDestino
+            WHERE bm.cuenta_id = @cuenta_id_destino
               AND bm.cbu_origen = p.cbu_origen
               AND bm.fecha = p.fecha_pago
               AND bm.importe = p.importe_pago
         );
 
-    PRINT 'Movimientos bancarios insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
-      
-    -- Insertar pagos
     INSERT INTO banco.pago (
         uf_id,
         fecha,
@@ -639,11 +628,9 @@ BEGIN
         WHERE fp.movimiento_id = mi.movimiento_id
     );
 
-    PRINT 'Pagos insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
-    PRINT 'Importación y conciliación de pagos completada.';
-      
     DROP TABLE #PagosCSV;
     DROP TABLE #PagosProcesados;
 
 END;
 GO
+

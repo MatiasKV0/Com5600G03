@@ -3,7 +3,7 @@
 Trabajo Práctico Integrador - ENTREGA 7
 Enunciado: Definición de política de backup, programación y RPO
            para la base de datos Com5600G03.
-Fecha de entrega: 2025-11-XX
+Fecha de entrega: 21-11-2025
 Comisión: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada

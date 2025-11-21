@@ -180,7 +180,7 @@ BEGIN
     ------------------------------------------------------------
     DROP TABLE #uf_procesadas;
 
-    PRINT 'Importación de Archivo UF (UF, Bauleras, Cocheras) finalizada OK.';
+    PRINT 'Importación de Archivo UF (UF, Bauleras, Cocheras) finalizada.';
     
     SET NOCOUNT OFF;
 END;

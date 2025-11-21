@@ -504,24 +504,12 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @consorcio_id INT;
-    DECLARE @cuenta_id_destino INT;
-
-    SELECT TOP 1
-        @consorcio_id = consorcio_id,
-        @cuenta_id_destino = cuenta_id
-    FROM administracion.consorcio_cuenta_bancaria
-    ORDER BY cuenta_id DESC;
-
-    IF @consorcio_id IS NULL OR @cuenta_id_destino IS NULL
-        RETURN -1;
-
     IF OBJECT_ID('tempdb..#PagosCSV') IS NOT NULL DROP TABLE #PagosCSV;
     CREATE TABLE #PagosCSV (
         id_pago_externo VARCHAR(50),
         fecha_texto VARCHAR(20),
-        cbu_origen VARCHAR(40),
-        valor_texto VARCHAR(50)
+        cbu_origen VARCHAR(80),
+        valor_texto VARCHAR(80)
     );
 
     DECLARE @SQL NVARCHAR(MAX);
@@ -535,7 +523,7 @@ BEGIN
             CODEPAGE = ''65001''
         );
     ';
-    
+
     BEGIN TRY
         EXEC (@SQL);
     END TRY
@@ -545,25 +533,65 @@ BEGIN
     END CATCH;
 
     IF OBJECT_ID('tempdb..#PagosProcesados') IS NOT NULL DROP TABLE #PagosProcesados;
+
     SELECT
-        ufc.uf_id, 
+        csv.id_pago_externo,
+
+        -- Normalización visual del CBU original (sin hashing)
         LTRIM(RTRIM(csv.cbu_origen)) AS cbu_origen,
+
         CONVERT(DATE, LTRIM(RTRIM(csv.fecha_texto)), 103) AS fecha_pago,
+
         TRY_CAST(
             REPLACE(REPLACE(LTRIM(RTRIM(csv.valor_texto)), '$', ''), '.', '')
-        AS NUMERIC(14, 2)) AS importe_pago,
-        csv.id_pago_externo,
-        CASE WHEN ufc.uf_id IS NULL THEN 'CBU de origen no vinculado a una UF' ELSE NULL END AS motivo_no_vinculado
+            AS NUMERIC(14,2)
+        ) AS importe_pago,
+
+        ufc.uf_id,
+        uf.consorcio_id AS consorcio_id_origen,
+
+        cb_origen.cuenta_id AS cuenta_origen_id,
+        ccb_principal.cuenta_id AS cuenta_destino_id,
+
+        CASE 
+            WHEN ufc.uf_id IS NULL THEN 'CBU no vinculado a una UF'
+            WHEN ccb_principal.cuenta_id IS NULL THEN 'El consorcio no tiene cuenta principal'
+            ELSE NULL 
+        END AS motivo_no_vinculado
+
     INTO #PagosProcesados
     FROM #PagosCSV csv
-    LEFT JOIN administracion.cuenta_bancaria cb 
-        ON cb.cbu_cvu_Hash = HASHBYTES('SHA2_256', LTRIM(RTRIM(csv.cbu_origen)))
+
+    OUTER APPLY (
+        SELECT 
+            CBU_LIMPIO = UPPER(
+                REPLACE(
+                    REPLACE(
+                        LTRIM(RTRIM(csv.cbu_origen)),
+                    CHAR(13), ''), 
+                CHAR(10), '')
+            )
+    ) AS CBU
+    LEFT JOIN administracion.cuenta_bancaria cb_origen 
+        ON cb_origen.cbu_cvu_Hash = HASHBYTES('SHA2_256', CBU.CBU_LIMPIO)
+
     LEFT JOIN unidad_funcional.uf_cuenta ufc 
-        ON cb.cuenta_id = ufc.cuenta_id; 
-        
+        ON cb_origen.cuenta_id = ufc.cuenta_id 
+       AND ufc.fecha_hasta IS NULL
+
+    LEFT JOIN unidad_funcional.unidad_funcional uf 
+        ON uf.uf_id = ufc.uf_id
+
+    LEFT JOIN administracion.consorcio_cuenta_bancaria ccb_principal
+        ON ccb_principal.consorcio_id = uf.consorcio_id
+       AND ccb_principal.es_principal = 1;
+
+    --------------------------------------------
+    -- Inserción de movimientos
+    --------------------------------------------
     DECLARE @MovimientosInsertados TABLE (
         movimiento_id INT,
-        cbu_origen VARCHAR(40),
+        cbu_origen VARCHAR(80),
         fecha DATE,
         importe NUMERIC(14,2)
     );
@@ -576,42 +604,48 @@ BEGIN
         importe,
         estado_conciliacion
     )
-    OUTPUT 
-        inserted.movimiento_id, 
-        inserted.cbu_origen, 
-        inserted.fecha, 
+    OUTPUT
+        inserted.movimiento_id,
+        inserted.cbu_origen,
+        inserted.fecha,
         inserted.importe
     INTO @MovimientosInsertados
     SELECT
-        @consorcio_id,
-        @cuenta_id_destino,
-        p.cbu_origen,
+        p.consorcio_id_origen,
+        p.cuenta_destino_id,
+        LTRIM(RTRIM(p.cbu_origen)),
         p.fecha_pago,
         p.importe_pago,
         CASE WHEN p.uf_id IS NOT NULL THEN 'ASOCIADO' ELSE 'PENDIENTE' END
     FROM #PagosProcesados p
-    WHERE 
-        p.importe_pago IS NOT NULL
-        AND p.fecha_pago IS NOT NULL
-        AND NOT EXISTS (
-            SELECT 1 FROM banco.banco_movimiento bm
-            WHERE bm.cuenta_id = @cuenta_id_destino
-              AND bm.cbu_origen = p.cbu_origen
+    WHERE p.importe_pago IS NOT NULL
+      AND p.fecha_pago IS NOT NULL
+      AND p.consorcio_id_origen IS NOT NULL
+      AND p.cuenta_destino_id IS NOT NULL
+      AND NOT EXISTS (
+            SELECT 1
+            FROM banco.banco_movimiento bm
+            WHERE bm.cuenta_id = p.cuenta_destino_id
+              AND bm.consorcio_id = p.consorcio_id_origen
+              AND bm.cbu_origen = LTRIM(RTRIM(p.cbu_origen))
               AND bm.fecha = p.fecha_pago
               AND bm.importe = p.importe_pago
-        );
+      );
 
+    --------------------------------------------
+    -- Inserción en banco.pago
+    --------------------------------------------
     INSERT INTO banco.pago (
         uf_id,
         fecha,
         importe,
         tipo,
-        movimiento_id, 
+        movimiento_id,
         motivo_no_asociado,
         created_by
     )
     SELECT
-        p.uf_id, 
+        p.uf_id,
         p.fecha_pago,
         p.importe_pago,
         'ORDINARIO',
@@ -620,12 +654,15 @@ BEGIN
         'SP_Importar'
     FROM #PagosProcesados p
     JOIN @MovimientosInsertados mi
-        ON p.cbu_origen = mi.cbu_origen
-       AND p.fecha_pago = mi.fecha
-       AND p.importe_pago = mi.importe
+      ON LTRIM(RTRIM(p.cbu_origen)) = mi.cbu_origen
+     AND p.fecha_pago = mi.fecha
+     AND p.importe_pago = mi.importe
     WHERE NOT EXISTS (
         SELECT 1 FROM banco.pago fp
-        WHERE fp.movimiento_id = mi.movimiento_id
+        WHERE fp.uf_id = p.uf_id
+          AND fp.fecha = p.fecha_pago
+          AND fp.importe = p.importe_pago
+          AND fp.movimiento_id = mi.movimiento_id
     );
 
     DROP TABLE #PagosCSV;
@@ -633,4 +670,3 @@ BEGIN
 
 END;
 GO
-

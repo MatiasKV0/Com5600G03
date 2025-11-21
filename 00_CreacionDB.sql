@@ -1,7 +1,7 @@
 /*
 ------------------------------------------------------------
-Trabajo Pr�ctico Integrador - ENTREGA 5
-Comisi�n: 5600
+Trabajo Práctico Integrador - ENTREGA 5
+Comisión: 5600
 Grupo: 03
 Materia: Bases de Datos Aplicada
 Integrantes: 
@@ -14,7 +14,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
 */
 
-----CREACI�N DE LA BASE DE DATOS
+----CREACIÓN DE LA BASE DE DATOS
 
 USE master;
 GO

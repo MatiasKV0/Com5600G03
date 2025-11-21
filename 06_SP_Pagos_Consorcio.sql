@@ -24,9 +24,10 @@ BEGIN
     SET NOCOUNT ON;
 
     ---------------------------------------------------------
-    -- 1) Cargar CSV a tabla temporal
+    -- 1) Cargar CSV en tabla temporal
     ---------------------------------------------------------
     IF OBJECT_ID('tempdb..#PagosCSV') IS NOT NULL DROP TABLE #PagosCSV;
+    
     CREATE TABLE #PagosCSV (
         id_pago_externo VARCHAR(50),
         fecha_texto VARCHAR(20),
@@ -55,8 +56,9 @@ BEGIN
         RETURN -1;
     END CATCH;
 
+
     ---------------------------------------------------------
-    -- 2) Procesar pagos y resolver consorcio + cuenta destino
+    -- 2) Procesar pagos y determinar UF, consorcio y cuenta destino
     ---------------------------------------------------------
     IF OBJECT_ID('tempdb..#PagosProcesados') IS NOT NULL DROP TABLE #PagosProcesados;
 
@@ -75,7 +77,7 @@ BEGIN
 
         cb_origen.cuenta_id AS cuenta_origen_id,
 
-        -- seleccion automática de cuenta destino
+        -- Selección automática de la cuenta principal del consorcio
         ccb_principal.cuenta_id AS cuenta_destino_id,
 
         CASE 
@@ -96,8 +98,9 @@ BEGIN
         ON ccb_principal.consorcio_id = uf.consorcio_id
        AND ccb_principal.es_principal = 1;
 
+
     ---------------------------------------------------------
-    -- 3) Insertar movimientos por consorcio real
+    -- 3) Insertar movimientos sin duplicados
     ---------------------------------------------------------
     DECLARE @MovimientosInsertados TABLE (
         movimiento_id INT,
@@ -132,10 +135,19 @@ BEGIN
     FROM #PagosProcesados p
     WHERE p.importe_pago IS NOT NULL
       AND p.consorcio_id_origen IS NOT NULL
-      AND p.cuenta_destino_id IS NOT NULL;
+      AND p.cuenta_destino_id IS NOT NULL
+      AND NOT EXISTS (
+            SELECT 1
+            FROM banco.banco_movimiento bm
+            WHERE bm.cbu_origen = p.cbu_origen
+              AND bm.fecha      = p.fecha_pago
+              AND bm.importe    = p.importe_pago
+              AND bm.cuenta_id  = p.cuenta_destino_id
+      );
+
 
     ---------------------------------------------------------
-    -- 4) Insertar pagos asociados a UF
+    -- 4) Insertar pagos sin duplicados
     ---------------------------------------------------------
     INSERT INTO banco.pago (
         uf_id,
@@ -158,7 +170,14 @@ BEGIN
     JOIN @MovimientosInsertados mi
       ON p.cbu_origen = mi.cbu_origen
      AND p.fecha_pago = mi.fecha
-     AND p.importe_pago = mi.importe;
+     AND p.importe_pago = mi.importe
+    WHERE NOT EXISTS (
+        SELECT 1 FROM banco.pago px
+        WHERE px.uf_id = p.uf_id
+          AND px.fecha = p.fecha_pago
+          AND px.importe = p.importe_pago
+          AND px.movimiento_id = mi.movimiento_id
+    );
 
     DROP TABLE #PagosCSV;
     DROP TABLE #PagosProcesados;

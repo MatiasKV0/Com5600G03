@@ -25,11 +25,11 @@ ALTER TABLE persona.persona
 ADD 
     nro_doc_Cifrado VARBINARY(256),
     nro_doc_Hash VARBINARY(32),
-    nro_doc_Sal VARBINARY(MAX),
+    nro_doc_Dec VARBINARY(MAX),
     
     nombre_completo_Cifrado VARBINARY(256),
     nombre_completo_Hash VARBINARY(32),
-    nombre_completo_Sal VARBINARY(MAX)
+    nombre_completo_Dec VARBINARY(MAX)
     
 GO
 
@@ -37,14 +37,14 @@ ALTER TABLE persona.persona_contacto
 ADD 
     valor_Cifrado VARBINARY(256),
     valor_Hash VARBINARY(32),
-    valor_Sal VARBINARY(MAX);
+    valor_Dec VARBINARY(MAX);
 GO
 
 ALTER TABLE administracion.cuenta_bancaria
 ADD 
     cbu_cvu_Cifrado VARBINARY(256),
     cbu_cvu_Hash VARBINARY(32),
-    cbu_cvu_Sal VARBINARY(MAX);
+    cbu_cvu_Dec VARBINARY(MAX);
 GO
 
 PRINT 'Columnas agregadas correctamente.';
@@ -54,23 +54,23 @@ GO
 
 UPDATE persona.persona
 SET 
-    nro_doc_Sal = CONVERT(VARBINARY, nro_doc),
+    nro_doc_Dec = CONVERT(VARBINARY, nro_doc),
     nro_doc_Hash = HASHBYTES('SHA2_256', nro_doc),
     
-    nombre_completo_Sal = CONVERT(VARBINARY, nombre_completo),
+    nombre_completo_Dec = CONVERT(VARBINARY, nombre_completo),
     nombre_completo_Hash = HASHBYTES('SHA2_256', nombre_completo)
     
 GO
 
 UPDATE persona.persona_contacto
 SET 
-    valor_Sal = CONVERT(VARBINARY, valor),
+    valor_Dec = CONVERT(VARBINARY, valor),
     valor_Hash = HASHBYTES('SHA2_256', valor);
 GO
 
 UPDATE administracion.cuenta_bancaria
 SET 
-    cbu_cvu_Sal = CONVERT(VARBINARY, cbu_cvu),
+    cbu_cvu_Dec = CONVERT(VARBINARY, cbu_cvu),
     cbu_cvu_Hash = HASHBYTES('SHA2_256', cbu_cvu);
 GO
 
@@ -90,13 +90,13 @@ BEGIN
             @FraseClave,
             nro_doc,
             1,
-            nro_doc_Sal
+            nro_doc_Dec
         ),
         nombre_completo_Cifrado = EncryptByPassPhrase(
             @FraseClave,
             nombre_completo,
             1,
-            nombre_completo_Sal
+            nombre_completo_Dec
         )
     WHERE nro_doc_Cifrado IS NULL;
 
@@ -118,7 +118,7 @@ BEGIN
             @FraseClave,
             valor,
             1,
-            valor_Sal
+            valor_Dec
         )
     WHERE valor_Cifrado IS NULL;
     
@@ -138,7 +138,7 @@ BEGIN
             @FraseClave,
             cbu_cvu,
             1,
-            cbu_cvu_Sal
+            cbu_cvu_Dec
         )
     WHERE cbu_cvu_Cifrado IS NULL;
     
@@ -194,10 +194,10 @@ BEGIN
         persona_id,
         tipo_doc,
         CONVERT(VARCHAR(100),
-            DecryptByPassPhrase(@FraseClave, nro_doc_Cifrado, 1, nro_doc_Sal)
+            DecryptByPassPhrase(@FraseClave, nro_doc_Cifrado, 1, nro_doc_Dec)
         ) AS nro_doc_descifrado,
         CONVERT(VARCHAR(200),
-            DecryptByPassPhrase(@FraseClave, nombre_completo_Cifrado, 1, nombre_completo_Sal)
+            DecryptByPassPhrase(@FraseClave, nombre_completo_Cifrado, 1, nombre_completo_Dec)
         ) AS nombre_completo_descifrado
     FROM persona.persona;
 END;
@@ -219,7 +219,7 @@ BEGIN
         persona_id,
         tipo,
         CONVERT(VARCHAR(200),
-            DecryptByPassPhrase(@FraseClave, valor_Cifrado, 1, valor_Sal)
+            DecryptByPassPhrase(@FraseClave, valor_Cifrado, 1, valor_Dec)
         ) AS valor_descifrado,
         es_preferido
     FROM persona.persona_contacto;
@@ -243,7 +243,7 @@ BEGIN
         banco,
         alias,
         CONVERT(VARCHAR(100),
-            DecryptByPassPhrase(@FraseClave, cbu_cvu_Cifrado, 1, cbu_cvu_Sal)
+            DecryptByPassPhrase(@FraseClave, cbu_cvu_Cifrado, 1, cbu_cvu_Dec)
         ) AS cbu_cvu_descifrado
     FROM administracion.cuenta_bancaria;
 END;

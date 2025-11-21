@@ -185,28 +185,6 @@ WHERE type = 'R'
     )
 ORDER BY name;
 
--- PERMISOS SOBRE STORED PROCEDURES
-
-SELECT 
-    rol.name AS 'Rol',
-    SCHEMA_NAME(obj.schema_id) AS 'Esquema',
-    obj.name AS 'Stored Procedure',
-    perm.permission_name AS 'Permiso',
-    perm.state_desc AS 'Estado'
-FROM sys.database_principals rol
-INNER JOIN sys.database_permissions perm ON rol.principal_id = perm.grantee_principal_id
-INNER JOIN sys.objects obj ON perm.major_id = obj.object_id
-WHERE rol.type = 'R' 
-    AND rol.name IN (
-        'Administrativo General', 
-        'Administrativo Bancario', 
-        'Administrativo Operativo', 
-        'Sistemas'
-    )
-    AND obj.type = 'P' -- Stored Procedure
-    AND perm.class = 1 -- Object
-ORDER BY rol.name, SCHEMA_NAME(obj.schema_id), obj.name;
-
 -- LISTADO DE TODOS LOS SP Y SU ACCESO POR ROL
 
 SELECT 
@@ -377,7 +355,4 @@ EXEC persona.importar_inquilinos_propietarios
 EXEC banco.importar_conciliar_pagos
     @RutaArchivo = N'C:\_temp\pagos_consorcios.csv',
     @IdCuentaDestino = 1;
-
--- 9. LLENAR Y SIMULAR EXPENSAS
-EXEC expensa.llenar_expensas
 */

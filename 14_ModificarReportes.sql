@@ -47,9 +47,9 @@ BEGIN
             STRING_AGG(
                 CASE pc.tipo
                     WHEN 'EMAIL' THEN 'Email: ' + CONVERT(VARCHAR(200), 
-                        DecryptByPassPhrase(@FraseClave, pc.valor_Cifrado, 1, pc.valor_Sal))
+                        DecryptByPassPhrase(@FraseClave, pc.valor_Cifrado, 1, pc.valor_Dec))
                     WHEN 'TELEFONO' THEN 'Tel: ' + CONVERT(VARCHAR(200), 
-                        DecryptByPassPhrase(@FraseClave, pc.valor_Cifrado, 1, pc.valor_Sal))
+                        DecryptByPassPhrase(@FraseClave, pc.valor_Cifrado, 1, pc.valor_Dec))
                 END, ', '
             ) AS Contactos
         FROM persona.persona_contacto pc
@@ -59,11 +59,11 @@ BEGIN
     SELECT TOP (@TopN)
         d.Unidad_Funcional,
         CONVERT(VARCHAR(200), 
-            DecryptByPassPhrase(@FraseClave, p.nombre_completo_Cifrado, 1, p.nombre_completo_Sal)
+            DecryptByPassPhrase(@FraseClave, p.nombre_completo_Cifrado, 1, p.nombre_completo_Dec)
         ) AS Propietario,
         p.tipo_doc AS TipoDocumento,
         CONVERT(VARCHAR(40), 
-            DecryptByPassPhrase(@FraseClave, p.nro_doc_Cifrado, 1, p.nro_doc_Sal)
+            DecryptByPassPhrase(@FraseClave, p.nro_doc_Cifrado, 1, p.nro_doc_Dec)
         ) AS NroDocumento,
         p.direccion AS Direccion,
         cp.Contactos,
@@ -137,7 +137,7 @@ BEGIN
         uf.codigo AS UnidadFuncional,
         ISNULL(
             CONVERT(VARCHAR(200), 
-                DecryptByPassPhrase(@FraseClave, pna.nombre_completo_Cifrado, 1, pna.nombre_completo_Sal)
+                DecryptByPassPhrase(@FraseClave, pna.nombre_completo_Cifrado, 1, pna.nombre_completo_Dec)
             ), 
             'Desconocido'
         ) AS Propietario,
@@ -178,7 +178,7 @@ BEGIN
         c.nombre, 
         uf.codigo, 
         pna.nombre_completo_Cifrado, 
-        pna.nombre_completo_Sal
+        pna.nombre_completo_Dec
         
     HAVING SUM(eu.deuda_anterior + eu.interes_mora) > 0
         

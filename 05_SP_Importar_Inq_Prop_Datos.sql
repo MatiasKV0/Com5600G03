@@ -85,7 +85,7 @@ BEGIN
     JOIN persona.persona p ON p.nro_doc = i.dni
     WHERE NOT EXISTS (
         SELECT 1 FROM persona.persona_contacto c 
-        WHERE c.persona_id = p.persona_id AND c.valor = i.email_personal
+        WHERE c.persona_id = p.persona_id AND c.valor = LOWER(RTRIM(LTRIM((i.email_personal))))
 	);
 
     INSERT INTO persona.persona_contacto (persona_id, tipo, valor, es_preferido)

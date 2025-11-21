@@ -109,10 +109,10 @@ BEGIN
         banco, 
         cbu_cvu_Cifrado,
         cbu_cvu_Hash,
-        cbu_cvu_Sal
+        cbu_cvu_Dec
     )
     OUTPUT inserted.cuenta_id, 
-           CONVERT(VARCHAR(22), DecryptByPassPhrase(@FraseClave, inserted.cbu_cvu_Cifrado, 1, inserted.cbu_cvu_Sal))
+           CONVERT(VARCHAR(22), DecryptByPassPhrase(@FraseClave, inserted.cbu_cvu_Cifrado, 1, inserted.cbu_cvu_Dec))
     INTO @InsCtas(cuenta_id, cbu)
     SELECT 
         'Desconocido', 
@@ -188,10 +188,10 @@ BEGIN
         direccion,
         nro_doc_Cifrado,
         nro_doc_Hash,
-        nro_doc_Sal,
+        nro_doc_Dec,
         nombre_completo_Cifrado,
         nombre_completo_Hash,
-        nombre_completo_Sal
+        nombre_completo_Dec
     )
     SELECT
         'DNI',
@@ -231,7 +231,7 @@ BEGIN
         tipo, 
         valor_Cifrado,
         valor_Hash,
-        valor_Sal,
+        valor_Dec,
         es_preferido
     )
     SELECT 
@@ -264,7 +264,7 @@ BEGIN
         tipo, 
         valor_Cifrado,
         valor_Hash,
-        valor_Sal,
+        valor_Dec,
         es_preferido
     )
     SELECT 
@@ -297,7 +297,7 @@ BEGIN
         alias, 
         cbu_cvu_Cifrado,
         cbu_cvu_Hash,
-        cbu_cvu_Sal
+        cbu_cvu_Dec
     )
     SELECT 
         'Desconocido',
@@ -424,7 +424,7 @@ BEGIN
             alias, 
             cbu_cvu_Cifrado,
             cbu_cvu_Hash,
-            cbu_cvu_Sal
+            cbu_cvu_Dec
         )
         SELECT 
             'Desconocido',

@@ -16,7 +16,7 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 
 --Ejecutar todas los SP juntos incluyendo la seleccion del setvar
 
-:setvar BasePath "C:\_temp\"  -- Para hacer uso de esto debemos ir arriba a la derecha a Query->Modo SQLCMD
+:setvar BasePath "C:\_temp\"  -- Para hacer uso de esto debemos ir arriba a la izquierda a Query->Modo SQLCMD
 
 USE Com5600G03;
 GO

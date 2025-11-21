@@ -245,9 +245,10 @@ ORDER BY SCHEMA_NAME(p.schema_id), p.name;
 
 
 
-
 USE master; -- Se trabaja a nivel de servidor (Logins)
 GO
+
+GRANT ADMINISTER BULK OPERATIONS TO Test_AdmBancario;
 
 PRINT '--- 1. Creación de Logins (Inicios de Sesión) ---';
 

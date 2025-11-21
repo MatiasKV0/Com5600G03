@@ -503,13 +503,19 @@ CREATE OR ALTER PROCEDURE banco.importar_conciliar_pagos
 AS
 BEGIN
     SET NOCOUNT ON;
+    -- Frase clave para encriptar los nuevos movimientos
+    DECLARE @FraseClave NVARCHAR(128) = N'MiClaveSegura2025$';
 
+    ---------------------------------------------------------
+    -- 1) Cargar CSV en tabla temporal
+    ---------------------------------------------------------
     IF OBJECT_ID('tempdb..#PagosCSV') IS NOT NULL DROP TABLE #PagosCSV;
+    
     CREATE TABLE #PagosCSV (
         id_pago_externo VARCHAR(50),
         fecha_texto VARCHAR(20),
-        cbu_origen VARCHAR(80),
-        valor_texto VARCHAR(80)
+        cbu_origen VARCHAR(100), -- Aumentado por seguridad
+        valor_texto VARCHAR(50)
     );
 
     DECLARE @SQL NVARCHAR(MAX);
@@ -528,19 +534,24 @@ BEGIN
         EXEC (@SQL);
     END TRY
     BEGIN CATCH
+        PRINT 'Error al cargar el CSV. Verifique formato y ruta.';
         DROP TABLE #PagosCSV;
         RETURN -1;
     END CATCH;
 
+    ---------------------------------------------------------
+    -- 2) Procesar pagos y normalizar datos
+    ---------------------------------------------------------
     IF OBJECT_ID('tempdb..#PagosProcesados') IS NOT NULL DROP TABLE #PagosProcesados;
 
     SELECT
         csv.id_pago_externo,
-
-        -- Normalización visual del CBU original (sin hashing)
-        LTRIM(RTRIM(csv.cbu_origen)) AS cbu_origen,
-
-        CONVERT(DATE, LTRIM(RTRIM(csv.fecha_texto)), 103) AS fecha_pago,
+        -- Limpiamos el CBU para usarlo luego
+        LTRIM(RTRIM(csv.cbu_origen)) AS cbu_origen_texto,
+        -- Generamos el Hash para búsquedas rápidas
+        HASHBYTES('SHA2_256', LTRIM(RTRIM(csv.cbu_origen))) AS cbu_origen_hash,
+        
+        CONVERT(DATE, csv.fecha_texto, 103) AS fecha_pago,
 
         TRY_CAST(
             REPLACE(REPLACE(LTRIM(RTRIM(csv.valor_texto)), '$', ''), '.', '')
@@ -549,7 +560,6 @@ BEGIN
 
         ufc.uf_id,
         uf.consorcio_id AS consorcio_id_origen,
-
         cb_origen.cuenta_id AS cuenta_origen_id,
         ccb_principal.cuenta_id AS cuenta_destino_id,
 
@@ -561,37 +571,25 @@ BEGIN
 
     INTO #PagosProcesados
     FROM #PagosCSV csv
-
-    OUTER APPLY (
-        SELECT 
-            CBU_LIMPIO = UPPER(
-                REPLACE(
-                    REPLACE(
-                        LTRIM(RTRIM(csv.cbu_origen)),
-                    CHAR(13), ''), 
-                CHAR(10), '')
-            )
-    ) AS CBU
+    -- JOIN usando HASH para encontrar la cuenta bancaria interna (si existe)
     LEFT JOIN administracion.cuenta_bancaria cb_origen 
-        ON cb_origen.cbu_cvu_Hash = HASHBYTES('SHA2_256', CBU.CBU_LIMPIO)
-
+        ON cb_origen.cbu_cvu_Hash = HASHBYTES('SHA2_256', LTRIM(RTRIM(csv.cbu_origen)))
+    
     LEFT JOIN unidad_funcional.uf_cuenta ufc 
-        ON cb_origen.cuenta_id = ufc.cuenta_id 
-       AND ufc.fecha_hasta IS NULL
-
+        ON cb_origen.cuenta_id = ufc.cuenta_id AND ufc.fecha_hasta IS NULL
     LEFT JOIN unidad_funcional.unidad_funcional uf 
         ON uf.uf_id = ufc.uf_id
-
     LEFT JOIN administracion.consorcio_cuenta_bancaria ccb_principal
         ON ccb_principal.consorcio_id = uf.consorcio_id
        AND ccb_principal.es_principal = 1;
 
-    --------------------------------------------
-    -- Inserción de movimientos
-    --------------------------------------------
+    ---------------------------------------------------------
+    -- 3) Insertar movimientos (CON ENCRIPTACIÓN)
+    ---------------------------------------------------------
+    -- Tabla variable para capturar los IDs generados y vincularlos luego
     DECLARE @MovimientosInsertados TABLE (
         movimiento_id INT,
-        cbu_origen VARCHAR(80),
+        cbu_hash VARBINARY(32), -- Usamos hash para el join posterior
         fecha DATE,
         importe NUMERIC(14,2)
     );
@@ -599,42 +597,51 @@ BEGIN
     INSERT INTO banco.banco_movimiento (
         consorcio_id,
         cuenta_id,
-        cbu_origen,
         fecha,
         importe,
-        estado_conciliacion
+        estado_conciliacion,
+        -- Columnas de Encriptación
+        cbu_origen_Cifrado,
+        cbu_origen_Hash,
+        cbu_origen_Dec
     )
     OUTPUT
         inserted.movimiento_id,
-        inserted.cbu_origen,
+        inserted.cbu_origen_Hash,
         inserted.fecha,
         inserted.importe
-    INTO @MovimientosInsertados
+    INTO @MovimientosInsertados (movimiento_id, cbu_hash, fecha, importe)
     SELECT
         p.consorcio_id_origen,
         p.cuenta_destino_id,
-        LTRIM(RTRIM(p.cbu_origen)),
         p.fecha_pago,
         p.importe_pago,
-        CASE WHEN p.uf_id IS NOT NULL THEN 'ASOCIADO' ELSE 'PENDIENTE' END
+        CASE WHEN p.uf_id IS NOT NULL THEN 'ASOCIADO' ELSE 'PENDIENTE' END,
+        
+        -- Encriptamos al vuelo el CBU que viene del CSV
+        EncryptByPassPhrase(@FraseClave, p.cbu_origen_texto, 1, CONVERT(VARBINARY, p.cbu_origen_texto)),
+        p.cbu_origen_hash,
+        CONVERT(VARBINARY, p.cbu_origen_texto)
+
     FROM #PagosProcesados p
     WHERE p.importe_pago IS NOT NULL
-      AND p.fecha_pago IS NOT NULL
       AND p.consorcio_id_origen IS NOT NULL
       AND p.cuenta_destino_id IS NOT NULL
+      -- Verificamos duplicados usando el HASH y los otros datos
       AND NOT EXISTS (
             SELECT 1
             FROM banco.banco_movimiento bm
-            WHERE bm.cuenta_id = p.cuenta_destino_id
-              AND bm.consorcio_id = p.consorcio_id_origen
-              AND bm.cbu_origen = LTRIM(RTRIM(p.cbu_origen))
-              AND bm.fecha = p.fecha_pago
-              AND bm.importe = p.importe_pago
+            WHERE bm.cbu_origen_Hash = p.cbu_origen_hash
+              AND bm.fecha      = p.fecha_pago
+              AND bm.importe    = p.importe_pago
+              AND bm.cuenta_id  = p.cuenta_destino_id
       );
 
-    --------------------------------------------
-    -- Inserción en banco.pago
-    --------------------------------------------
+    PRINT 'Movimientos insertados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
+
+    ---------------------------------------------------------
+    -- 4) Insertar pagos (Vinculación)
+    ---------------------------------------------------------
     INSERT INTO banco.pago (
         uf_id,
         fecha,
@@ -653,20 +660,22 @@ BEGIN
         p.motivo_no_vinculado,
         'SP_Importar'
     FROM #PagosProcesados p
+    -- Hacemos JOIN con los insertados usando el Hash
     JOIN @MovimientosInsertados mi
-      ON LTRIM(RTRIM(p.cbu_origen)) = mi.cbu_origen
+      ON p.cbu_origen_hash = mi.cbu_hash
      AND p.fecha_pago = mi.fecha
      AND p.importe_pago = mi.importe
     WHERE NOT EXISTS (
-        SELECT 1 FROM banco.pago fp
-        WHERE fp.uf_id = p.uf_id
-          AND fp.fecha = p.fecha_pago
-          AND fp.importe = p.importe_pago
-          AND fp.movimiento_id = mi.movimiento_id
+        SELECT 1 FROM banco.pago px
+        WHERE px.uf_id = p.uf_id
+          AND px.fecha = p.fecha_pago
+          AND px.importe = p.importe_pago
+          AND px.movimiento_id = mi.movimiento_id
     );
+
+    PRINT 'Pagos registrados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
 
     DROP TABLE #PagosCSV;
     DROP TABLE #PagosProcesados;
-
 END;
 GO

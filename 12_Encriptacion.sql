@@ -47,6 +47,13 @@ ADD
     cbu_cvu_Dec VARBINARY(MAX);
 GO
 
+ALTER TABLE banco.banco_movimiento
+ADD 
+    cbu_origen_Cifrado VARBINARY(256),
+    cbu_origen_Hash VARBINARY(32),
+    cbu_origen_Dec VARBINARY(MAX);
+GO
+
 PRINT 'Columnas agregadas correctamente.';
 GO
 
@@ -74,6 +81,11 @@ SET
     cbu_cvu_Hash = HASHBYTES('SHA2_256', cbu_cvu);
 GO
 
+UPDATE banco.banco_movimiento
+SET
+	cbu_origen_Dec = CONVERT(VARBINARY, cbu_origen),
+	cbu_origen_Hash = HASHBYTES('SHA2_256', cbu_origen);
+GO
 --------------------------------------------------------------
 --SP DE CIFRADOS
 --------------------------------------------------------------
@@ -146,14 +158,43 @@ BEGIN
 END;
 GO
 
+CREATE OR ALTER PROCEDURE banco.sp_cifrar_movimientos
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @FraseClave NVARCHAR(128) = N'MiClaveSegura2025$';
+
+    UPDATE banco.banco_movimiento
+    SET 
+        cbu_origen_Dec = CONVERT(VARBINARY, cbu_origen),
+        cbu_origen_Hash = HASHBYTES('SHA2_256', cbu_origen),
+        
+        cbu_origen_Cifrado = EncryptByPassPhrase(
+            @FraseClave,
+            cbu_origen,
+            1,
+            CONVERT(VARBINARY, cbu_origen) 
+        )
+    WHERE cbu_origen_Cifrado IS NULL 
+      AND cbu_origen IS NOT NULL;
+
+    PRINT 'Movimientos bancarios cifrados: ' + CAST(@@ROWCOUNT AS VARCHAR(10));
+END;
+GO
 
 --------------EJECUTO SP DE CIFRADOS-----------------------------
 
 EXEC persona.sp_cifrar_personas;
 EXEC persona.sp_cifrar_contactos;
 EXEC administracion.sp_cifrar_cuentas;
+EXEC banco.sp_cifrar_movimientos;
 GO
-
+-----BORRO INDICES NOCLUSTER-------------
+IF EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_movimiento_cbu' AND object_id = OBJECT_ID('banco.banco_movimiento'))
+BEGIN
+    DROP INDEX IX_movimiento_cbu ON banco.banco_movimiento;
+END
+GO
 -----BORRO COLUMNAS ORIGINALES----------
 ALTER TABLE persona.persona
 DROP CONSTRAINT UQ_persona_doc;
@@ -179,7 +220,11 @@ GO
 ALTER TABLE administracion.cuenta_bancaria
 DROP COLUMN cbu_cvu;
 GO
+
+ALTER TABLE banco.banco_movimiento
+DROP COLUMN cbu_origen;
 GO
+
 CREATE OR ALTER PROCEDURE persona.sp_descifrar_personas
     @FraseClave NVARCHAR(128)
 AS
@@ -226,9 +271,6 @@ BEGIN
 END;
 GO
 
-
-
-GO
 CREATE OR ALTER PROCEDURE administracion.sp_descifrar_cuentas
     @FraseClave NVARCHAR(128)
 AS
@@ -248,9 +290,39 @@ BEGIN
     FROM administracion.cuenta_bancaria;
 END;
 GO
+
+CREATE OR ALTER PROCEDURE banco.sp_descifrar_movimientos
+    @FraseClave NVARCHAR(128)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @FraseClave <> N'MiClaveSegura2025$'
+    BEGIN
+         PRINT 'Frase clave incorrecta.';
+         RETURN;
+    END
+
+    SELECT 
+        movimiento_id,
+        consorcio_id,
+        cuenta_id,
+        fecha,
+        importe,
+        estado_conciliacion,
+        -- Descifrado
+        CONVERT(VARCHAR(100),
+            DecryptByPassPhrase(@FraseClave, cbu_origen_Cifrado, 1, cbu_origen_Dec)
+        ) AS cbu_origen_descifrado
+    FROM banco.banco_movimiento;
+END;
+GO
+
+
 ---------------------EJECUTO SP PARA DESCIFRAR TABLAS CIFRADAS-------------------
 
 EXEC persona.sp_descifrar_personas N'MiClaveSegura2025$';
 EXEC persona.sp_descifrar_contactos N'MiClaveSegura2025$';
 EXEC administracion.sp_descifrar_cuentas N'MiClaveSegura2025$';
+EXEC banco.sp_descifrar_movimientos N'MiClaveSegura2025$';
 GO

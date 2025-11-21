@@ -26,7 +26,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    -- IMPORTANTE: Usar la misma passphrase que en el script de encriptación
+   
     DECLARE @FraseClave NVARCHAR(128) = N'MiClaveSegura2025$';
 
     WITH DeudaPorUF AS (
@@ -88,7 +88,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
     
-    -- IMPORTANTE: Usar la misma passphrase que en el script de encriptación
+  
     DECLARE @FraseClave NVARCHAR(128) = N'MiClaveSegura2025$';
 
     IF @ConsorcioId IS NULL OR @Anio IS NULL OR @Mes IS NULL

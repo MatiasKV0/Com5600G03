@@ -14,8 +14,6 @@ Sotelo Matias Ivan            - MatiSotelo2004  - 45870010
 ------------------------------------------------------------
 */
 
-
-
 --GENERACION DE REPORTES
 
 USE Com5600G03

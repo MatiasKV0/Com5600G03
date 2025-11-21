@@ -311,6 +311,7 @@ CREATE OR ALTER PROCEDURE administracion.crear_periodos
     @Anio SMALLINT
 AS
 BEGIN
+    SET NOCOUNT ON
     INSERT INTO expensa.periodo (consorcio_id, anio, mes, vencimiento_1, vencimiento_2)
     SELECT 
         c.consorcio_id,

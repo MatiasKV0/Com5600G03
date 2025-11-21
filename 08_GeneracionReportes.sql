@@ -209,7 +209,7 @@ BEGIN
             p.anio,
             p.mes,
             CONCAT(p.anio, '-', RIGHT('0' + CAST(p.mes AS VARCHAR(2)), 2)) AS Periodo,
-            SUM(g.importe) AS TotalGastos
+            SUM(ISNULL(g.importe, 0)) AS TotalGastos
         FROM expensa.periodo p
         INNER JOIN administracion.consorcio c ON p.consorcio_id = c.consorcio_id
         LEFT JOIN expensa.gasto g ON p.periodo_id = g.periodo_id
@@ -225,7 +225,7 @@ BEGIN
             p.anio,
             p.mes,
             CONCAT(p.anio, '-', RIGHT('0' + CAST(p.mes AS VARCHAR(2)), 2)) AS Periodo,
-            SUM(pg.importe) AS TotalIngresos
+            SUM(ISNULL(pg.importe, 0)) AS TotalIngresos
         FROM expensa.periodo p
         INNER JOIN administracion.consorcio c ON p.consorcio_id = c.consorcio_id
         LEFT JOIN unidad_funcional.unidad_funcional uf ON c.consorcio_id = uf.consorcio_id

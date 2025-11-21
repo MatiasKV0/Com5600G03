@@ -278,6 +278,11 @@ CREATE LOGIN Test_Sistemas WITH PASSWORD = N'password', CHECK_POLICY = OFF;
 PRINT '- Login Test_Sistemas creado';
 GO
 
+GRANT ADMINISTER BULK OPERATIONS TO Test_AdmBancario;
+GRANT ADMINISTER BULK OPERATIONS TO Test_AdmOperativo;
+GRANT ADMINISTER BULK OPERATIONS TO Test_AdmGeneral;
+GO
+
 USE Com5600G03; -- Se trabaja a nivel de base de datos (Usuarios y Roles)
 GO
 
@@ -331,6 +336,7 @@ GO
 ALTER ROLE [Sistemas] ADD MEMBER Usuario_Sistemas;
 PRINT '- Rol Sistemas asignado a Usuario_Sistemas';
 GO
+
 
 PRINT 'Los Logins y Usuarios han sido creados correctamente y los roles asignados.';
 

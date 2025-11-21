@@ -29,50 +29,50 @@ PRINT '';
 --   - Se importan todos los consorcios que no existan previamente.
 --   - Si no existe, se crea la administración base 'Administración General'.
 --   - No deben generarse errores de PK/UNIQUE.
-PRINT '1. Importando Consorcios...';
+PRINT '1. Importando Consorcios';
 EXEC administracion.importar_consorcios 
     @RutaArchivo = N'$(BasePath)datos varios(Consorcios).csv';
 PRINT '';
 
 -- 2. Unidades Funcionales
-PRINT '2. Importando UF...';
+PRINT '2. Importando UF';
 EXEC administracion.importar_uf
     @RutaArchivo = N'$(BasePath)UF por consorcio.txt';
 PRINT '';
 
 -- 3. Tipos de Gasto
-PRINT '3. Cargando Tipos de Gasto...';
+PRINT '3. Cargando Tipos de Gasto';
 EXEC administracion.cargar_tipo_gastos;
 PRINT '';
 
 EXEC administracion.crear_periodos @Anio = 2025;
 
 -- 4. Proveedores
-PRINT '4. Importando Proveedores...';
+PRINT '4. Importando Proveedores';
 EXEC administracion.cargar_proveedores
     @RutaArchivo = N'$(BasePath)datos varios(Proveedores).csv';
 PRINT '';
 
 -- 5. Gastos
-PRINT '5. Importando Gastos...';
+PRINT '5. Importando Gastos';
 EXEC administracion.importar_gastos
     @RutaArchivo = N'$(BasePath)Servicios.Servicios.json';
 PRINT '';
 
 -- 6. Cuentas
-PRINT '6. Importando Cuentas...';
+PRINT '6. Importando Cuentas';
 EXEC unidad_funcional.importar_uf_cbu
      @RutaArchivo = N'$(BasePath)Inquilino-propietarios-UF.csv';
 PRINT '';
 
 -- 7. Personas
-PRINT '7. Importando Inquilinos y Propietarios...';
+PRINT '7. Importando Inquilinos y Propietarios';
 EXEC persona.importar_inquilinos_propietarios
     @RutaArchivo = N'$(BasePath)Inquilino-propietarios-datos.csv';
 PRINT '';
 
 -- 8. Pagos
-PRINT '8. Importando Pagos...';
+PRINT '8. Importando Pagos';
 
 IF NOT EXISTS (
     SELECT 1 FROM administracion.consorcio_cuenta_bancaria 
@@ -81,12 +81,6 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO administracion.consorcio_cuenta_bancaria (consorcio_id, cuenta_id, es_principal)
     VALUES (1, 1, 1);
-    
-    PRINT 'Vínculo consorcio-cuenta (1-1) creado.';
-END
-ELSE
-BEGIN
-    PRINT 'El vínculo consorcio-cuenta (1-1) ya existía. Omitiendo.';
 END
 GO
 

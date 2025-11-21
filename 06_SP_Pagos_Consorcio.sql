@@ -308,7 +308,7 @@ BEGIN
     WHERE eu.interes_mora > 0;
 	END TRY
 	BEGIN CATCH
-	 print 'Este SP se ejecuto anteriormente'
+	 print 'Pagos importados'
 	END CATCH	
 END;
 GO
